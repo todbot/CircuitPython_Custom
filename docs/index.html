@@ -617,6 +617,9 @@ function updateCliCommands() {
   if (lang !== 'en_US') makeArgs.push(`TRANSLATION=${v(lang)}`);
   if (debug === '1')    makeArgs.push(`DEBUG=${v('1')}`);
 
+  lines.push(c('# Fetch port submodules (run once per port):'));
+  lines.push(`${k('cd')} ports/${port} && ${k('make')} fetch-port-submodules`);
+  lines.push('');
   lines.push(c('# Build:'));
   lines.push(`${k('cd')} ports/${port} && ${k('make')} -j8 ${makeArgs.join(' ')}`);
 
@@ -640,6 +643,9 @@ function updateCliCommands() {
       'EOF',
       '',
     ] : []),
+    '# Fetch port submodules (run once per port):',
+    `cd ports/${port} && make fetch-port-submodules`,
+    '',
     '# Build:',
     `cd ports/${port} && make -j8 ${['BOARD='+board, ...flags.split(' ').filter(Boolean), ...(lang!=='en_US'?['TRANSLATION='+lang]:[]), ...(debug==='1'?['DEBUG=1']:[])].join(' ')}`,
   ].join('\n');
