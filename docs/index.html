@@ -331,10 +331,7 @@ async function onPortChange() {
     // zephyr-cp has vendor subdirectories; flatten one level if needed
     const boards = [];
     for (const e of entries) {
-      if (e.type === 'dir') {
-        // Check if this looks like a board (has mpconfigboard.mk) vs a vendor dir
-        boards.push(e.name);
-      } else if (e.type === 'submodule') {
+      if (!e.name.startsWith('.')) {
         boards.push(e.name);
       }
     }
@@ -433,7 +430,7 @@ async function loadFrozenList() {
   try {
     const entries = await ghContents('frozen');
     _allFrozen = entries
-      .filter(e => e.type === 'dir' || e.type === 'submodule')
+      .filter(e => !e.name.startsWith('.'))
       .map(e => e.name)
       .sort();
     renderFrozen();
