@@ -134,6 +134,36 @@
       vertical-align: middle;
     }
     .warn { color: #b45309; font-size: 0.8rem; margin-top: 0.25rem; }
+    .cli-block {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border-radius: 0.5rem;
+      padding: 1rem 1.25rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      white-space: pre;
+      overflow-x: auto;
+      position: relative;
+    }
+    .cli-block .comment { color: #6c7086; }
+    .cli-block .cmd { color: #cdd6f4; }
+    .cli-block .kw { color: #89b4fa; }
+    .cli-block .val { color: #a6e3a1; }
+    .cli-placeholder { color: #9ca3af; font-style: italic; font-size: 0.875rem; }
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: #313244;
+      color: #cdd6f4;
+      border: none;
+      border-radius: 0.25rem;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #45475a; }
   </style>
 </head>
 <body>
@@ -170,6 +200,12 @@
       </select>
     </div>
   </div>
+  <div style="margin-top:0.75rem">
+    <label for="custom-name">Custom build name <span style="font-weight:400;color:#6b7280">(optional)</span></label>
+    <input type="text" id="custom-name" placeholder="e.g. pico-minimal-audio"
+           oninput="updateBuildSummary()" style="max-width:320px">
+    <p class="hint">Used as the artifact/run name instead of the board ID.</p>
+  </div>
 </div>
 
 <!-- Build options -->
@@ -178,20 +214,20 @@
   <div class="row4">
     <div>
       <label for="version">Version</label>
-      <input type="text" id="version" value="latest" placeholder="latest">
+      <input type="text" id="version" value="latest" placeholder="latest" oninput="updateBuildSummary()">
       <p class="hint">Tag, commit, or "latest"</p>
     </div>
     <div>
       <label for="branch">Branch <span class="badge">if version=latest</span></label>
-      <input type="text" id="branch" value="main" placeholder="main">
+      <input type="text" id="branch" value="main" placeholder="main" oninput="updateBuildSummary()">
     </div>
     <div>
       <label for="language">Language</label>
-      <input type="text" id="language" value="en_US" placeholder="en_US">
+      <input type="text" id="language" value="en_US" placeholder="en_US" oninput="updateBuildSummary()">
     </div>
     <div>
       <label>&nbsp;</label>
-      <label style="padding-top:0.5rem"><input type="checkbox" id="debug"> Debug build</label>
+      <label style="padding-top:0.5rem"><input type="checkbox" id="debug" onchange="updateBuildSummary()"> Debug build</label>
     </div>
   </div>
 </div>
@@ -217,6 +253,13 @@
   </label>
   <p class="hint">Bold blue = already frozen in the selected board. Unchecking a board default auto-enables "clear".</p>
   <div id="frozen-container"><p class="loading">Loading frozen module list…</p></div>
+</div>
+
+<!-- CLI equivalent -->
+<h2>CLI Equivalent</h2>
+<div class="card">
+  <p class="hint" style="margin-top:0">Run these commands locally from the root of a CircuitPython checkout.</p>
+  <div id="cli-container"><p class="cli-placeholder">Select a board to see the equivalent build commands.</p></div>
 </div>
 
 <!-- Build -->
@@ -513,8 +556,9 @@ function updateBuildSummary() {
   const clearFrozen = document.getElementById('clear-frozen').checked;
   const version = document.getElementById('version').value.trim() || 'latest';
   const branch = document.getElementById('branch').value.trim() || 'main';
+  const customName = document.getElementById('custom-name').value.trim();
 
-  const parts = [`<b>${board}</b>`, `version: ${version}`];
+  const parts = [`<b>${customName || board}</b>`, `version: ${version}`];
   if (version === 'latest' && branch !== 'main') parts.push(`branch: ${branch}`);
   if (document.getElementById('debug').checked) parts.push('<b>debug</b>');
   if (flags) parts.push(`flags: <code>${escHtml(flags)}</code>`);
@@ -524,6 +568,90 @@ function updateBuildSummary() {
   const el = document.getElementById('build-summary');
   el.innerHTML = '→ ' + parts.join(' &nbsp;·&nbsp; ');
   el.style.display = 'block';
+
+  updateCliCommands();
+}
+
+function updateCliCommands() {
+  const port  = document.getElementById('port-select').value;
+  const board = document.getElementById('board-select').value;
+  if (!port || !board) return;
+
+  const flags       = collectFlags();
+  const frozen      = collectFrozenModules();
+  const clearFrozen = document.getElementById('clear-frozen').checked;
+  const lang        = document.getElementById('language').value.trim() || 'en_US';
+  const debug       = document.getElementById('debug').checked ? '1' : '0';
+
+  const lines = [];
+  const c = s => `<span class="comment">${escHtml(s)}</span>`;
+  const k = s => `<span class="kw">${escHtml(s)}</span>`;
+  const v = s => `<span class="val">${escHtml(s)}</span>`;
+
+  lines.push(c('# Prerequisites (run once from repo root):'));
+  lines.push(c('# pip install -r requirements-dev.txt'));
+  lines.push(c('# make -C mpy-cross'));
+  lines.push('');
+
+  if (clearFrozen || frozen) {
+    lines.push(c('# Create frozen module override file:'));
+    lines.push(`${k('cat')} > ports/${port}/user_pre_mpconfigport.mk << ${v("'EOF'")}`);
+    if (clearFrozen) {
+      lines.push(c('# clear board frozen modules'));
+      lines.push('FROZEN_MPY_DIRS :=');
+    }
+    for (const mod of frozen.split(' ').filter(Boolean)) {
+      lines.push(`FROZEN_MPY_DIRS += $(TOP)/frozen/${mod}`);
+    }
+    lines.push(v('EOF'));
+    lines.push('');
+  }
+
+  const makeArgs = [`BOARD=${v(board)}`];
+  if (flags) {
+    for (const f of flags.split(' ').filter(Boolean)) {
+      const [mk, mv] = f.split('=');
+      makeArgs.push(`${k(mk)}=${v(mv)}`);
+    }
+  }
+  if (lang !== 'en_US') makeArgs.push(`TRANSLATION=${v(lang)}`);
+  if (debug === '1')    makeArgs.push(`DEBUG=${v('1')}`);
+
+  lines.push(c('# Build:'));
+  lines.push(`${k('cd')} ports/${port} && ${k('make')} -j8 ${makeArgs.join(' ')}`);
+
+  const container = document.getElementById('cli-container');
+  container.innerHTML =
+    `<div class="cli-block">` +
+    `<button class="copy-btn" onclick="copyCli()">Copy</button>` +
+    lines.join('\n') +
+    `</div>`;
+  // stash plain text for copying
+  container.dataset.plain = [
+    '# Prerequisites (run once from repo root):',
+    '# pip install -r requirements-dev.txt',
+    '# make -C mpy-cross',
+    '',
+    ...(clearFrozen || frozen ? [
+      '# Create frozen module override file:',
+      `cat > ports/${port}/user_pre_mpconfigport.mk << 'EOF'`,
+      ...(clearFrozen ? ['# clear board frozen modules', 'FROZEN_MPY_DIRS :='] : []),
+      ...frozen.split(' ').filter(Boolean).map(m => `FROZEN_MPY_DIRS += $(TOP)/frozen/${m}`),
+      'EOF',
+      '',
+    ] : []),
+    '# Build:',
+    `cd ports/${port} && make -j8 ${['BOARD='+board, ...flags.split(' ').filter(Boolean), ...(lang!=='en_US'?['TRANSLATION='+lang]:[]), ...(debug==='1'?['DEBUG=1']:[])].join(' ')}`,
+  ].join('\n');
+}
+
+function copyCli() {
+  const text = document.getElementById('cli-container').dataset.plain;
+  if (text) navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+  });
 }
 
 function escHtml(s) {
@@ -539,6 +667,7 @@ async function triggerBuild() {
 
   const inputs = {
     board,
+    custom_name:    document.getElementById('custom-name').value.trim(),
     version:        document.getElementById('version').value.trim()  || 'latest',
     branch:         document.getElementById('branch').value.trim()   || 'main',
     language:       document.getElementById('language').value.trim() || 'en_US',

@@ -41,8 +41,13 @@ on:
         required: false
         default: false
         type: boolean
+      custom_name:
+        description: 'Custom build name: replaces the board ID in the artifact/run name'
+        required: false
+        default: ''
+        type: string
 
-run-name: ${{ inputs.board }}-${{ inputs.language }}-${{ inputs.version }}${{ inputs.flags != '' && '-custom' || '' }}${{ inputs.frozen_modules != '' && '-frozen' || '' }}${{ inputs.clear_frozen && '-nofrozen' || '' }}${{ inputs.debug && '-debug' || '' }}
+run-name: ${{ inputs.custom_name || inputs.board }}-${{ inputs.language }}-${{ inputs.version }}${{ inputs.flags != '' && '-custom' || '' }}${{ inputs.frozen_modules != '' && '-frozen' || '' }}${{ inputs.clear_frozen && '-nofrozen' || '' }}${{ inputs.debug && '-debug' || '' }}
 
 jobs:
   build:
@@ -148,5 +153,5 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v7
       with:
-        name: ${{ inputs.board }}-${{ inputs.language }}-${{ inputs.version }}${{ inputs.flags != '' && '-custom' || '' }}${{ inputs.frozen_modules != '' && '-frozen' || '' }}${{ inputs.clear_frozen && '-nofrozen' || '' }}${{ inputs.debug && '-debug' || '' }}
+        name: ${{ inputs.custom_name || inputs.board }}-${{ inputs.language }}-${{ inputs.version }}${{ inputs.flags != '' && '-custom' || '' }}${{ inputs.frozen_modules != '' && '-frozen' || '' }}${{ inputs.clear_frozen && '-nofrozen' || '' }}${{ inputs.debug && '-debug' || '' }}
         path: ports/${{ steps.board-to-port.outputs.port }}/build-${{ inputs.board }}/firmware.*
