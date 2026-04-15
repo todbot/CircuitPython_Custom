@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CircuitPython Custom Build</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 860px;
+      margin: 2rem auto;
+      padding: 0 1.25rem;
+      color: #1f2937;
+      background: #f9fafb;
+    }
+    h1 { color: #1d4ed8; margin-bottom: 0.25rem; }
+    h1 span { color: #6b7280; font-weight: 400; font-size: 1rem; }
+    h2 {
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 0.4rem;
+      margin-top: 2rem;
+      font-size: 1.1rem;
+      color: #374151;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1.25rem;
+      margin: 1rem 0;
+    }
+    label { display: block; margin: 0.6rem 0 0.2rem; font-weight: 500; font-size: 0.9rem; }
+    input[type=text], input[type=password], select {
+      width: 100%;
+      padding: 0.45rem 0.65rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.95rem;
+      background: white;
+    }
+    input[type=text]:focus, input[type=password]:focus, select:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 1px;
+    }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    .row4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; }
+    .hint { font-size: 0.8rem; color: #6b7280; margin: 0.2rem 0 0; }
+    .token-row { display: flex; gap: 0.5rem; }
+    .token-row input { flex: 1; }
+    button {
+      padding: 0.45rem 1rem;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .btn-primary { background: #1d4ed8; color: white; }
+    .btn-primary:hover { background: #1e40af; }
+    .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+    .btn-secondary { background: #e5e7eb; color: #374151; }
+    .btn-secondary:hover { background: #d1d5db; }
+    .btn-build {
+      background: #16a34a;
+      color: white;
+      padding: 0.75rem 2.5rem;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+    .btn-build:hover { background: #15803d; }
+    .btn-build:disabled { background: #86efac; cursor: not-allowed; }
+
+    /* flags table */
+    .flags-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .flags-table th {
+      text-align: left;
+      padding: 0.3rem 0.5rem;
+      background: #f3f4f6;
+      border-bottom: 2px solid #e5e7eb;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: #6b7280;
+      letter-spacing: 0.05em;
+    }
+    .flags-table td { padding: 0.25rem 0.5rem; border-bottom: 1px solid #f3f4f6; }
+    .flags-table tr:hover td { background: #f9fafb; }
+    .flags-table code { font-size: 0.85rem; color: #1d4ed8; }
+    .val-input {
+      width: 70px !important;
+      padding: 0.2rem 0.4rem !important;
+      font-size: 0.875rem !important;
+      font-family: monospace;
+    }
+    .original { color: #9ca3af; font-size: 0.8rem; }
+
+    /* frozen grid */
+    .frozen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 0.2rem;
+      margin-top: 0.75rem;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.375rem;
+      padding: 0.5rem;
+    }
+    .frozen-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; padding: 0.1rem 0; }
+    .frozen-item.board-default { font-weight: 600; color: #1d4ed8; }
+
+    /* status */
+    .status {
+      padding: 0.75rem 1rem;
+      border-radius: 0.375rem;
+      margin-top: 0.75rem;
+      display: none;
+    }
+    .status.info    { background: #dbeafe; color: #1e40af; display: block; }
+    .status.success { background: #dcfce7; color: #166534; display: block; }
+    .status.error   { background: #fee2e2; color: #991b1b; display: block; }
+    .status a { color: inherit; font-weight: 600; }
+
+    .loading { color: #9ca3af; font-style: italic; font-size: 0.9rem; padding: 0.5rem 0; }
+    .badge {
+      display: inline-block;
+      background: #fef9c3;
+      color: #854d0e;
+      padding: 0.1rem 0.4rem;
+      border-radius: 0.25rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      vertical-align: middle;
+    }
+    .warn { color: #b45309; font-size: 0.8rem; margin-top: 0.25rem; }
+  </style>
+</head>
+<body>
+
+<h1>CircuitPython Custom Build <span>— todbot/CircuitPython_Custom</span></h1>
+
+<!-- Token -->
+<h2>GitHub Token</h2>
+<div class="card">
+  <label for="token">Personal Access Token — needs <code>workflow</code> scope (or <code>repo</code>)</label>
+  <div class="token-row">
+    <input type="password" id="token" placeholder="ghp_…" autocomplete="off" onkeydown="if(event.key==='Enter') saveToken()">
+    <button class="btn-secondary" onclick="saveToken()">Save</button>
+    <button class="btn-secondary" onclick="clearToken()" title="Forget token">✕</button>
+  </div>
+  <p class="hint">Stored only in your browser's localStorage. Only sent to <code>api.github.com</code>. Browse boards without a token; a token is required to trigger a build.</p>
+  <div id="token-status" class="status"></div>
+</div>
+
+<!-- Board selection -->
+<h2>Board</h2>
+<div class="card">
+  <div class="row2">
+    <div>
+      <label for="port-select">Port</label>
+      <select id="port-select" onchange="onPortChange()">
+        <option value="">Loading ports…</option>
+      </select>
+    </div>
+    <div>
+      <label for="board-select">Board</label>
+      <select id="board-select" onchange="onBoardChange()">
+        <option value="">Select a port first</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Build options -->
+<h2>Build Options</h2>
+<div class="card">
+  <div class="row4">
+    <div>
+      <label for="version">Version</label>
+      <input type="text" id="version" value="latest" placeholder="latest">
+      <p class="hint">Tag, commit, or "latest"</p>
+    </div>
+    <div>
+      <label for="branch">Branch <span class="badge">if version=latest</span></label>
+      <input type="text" id="branch" value="main" placeholder="main">
+    </div>
+    <div>
+      <label for="language">Language</label>
+      <input type="text" id="language" value="en_US" placeholder="en_US">
+    </div>
+    <div>
+      <label>&nbsp;</label>
+      <label style="padding-top:0.5rem"><input type="checkbox" id="debug"> Debug build</label>
+    </div>
+  </div>
+</div>
+
+<!-- CIRCUITPY_* flags -->
+<h2>CIRCUITPY_* Overrides <span id="flags-count" style="font-size:0.8rem;font-weight:400;color:#6b7280"></span></h2>
+<div class="card">
+  <p class="hint" style="margin-top:0">Values from the board's <code>mpconfigboard.mk</code>. Check a row to override it. Use the extra field for flags not listed here.</p>
+  <div id="flags-container"><p class="loading">Select a board to see its flags.</p></div>
+  <div style="margin-top:1rem">
+    <label for="extra-flags">Extra flags</label>
+    <input type="text" id="extra-flags" placeholder="CIRCUITPY_FOO=1 CIRCUITPY_BAR=0">
+    <p class="hint">Space-separated KEY=VALUE overrides not listed above.</p>
+  </div>
+</div>
+
+<!-- Frozen modules -->
+<h2>Frozen Modules</h2>
+<div class="card">
+  <label>
+    <input type="checkbox" id="clear-frozen" onchange="onClearFrozenChange()">
+    Clear all board frozen modules before applying selection below
+  </label>
+  <p class="hint">Bold blue = already frozen in the selected board. Unchecking a board default auto-enables "clear".</p>
+  <div id="frozen-container"><p class="loading">Loading frozen module list…</p></div>
+</div>
+
+<!-- Build -->
+<h2>Build</h2>
+<div class="card">
+  <div id="build-summary" style="font-size:0.875rem; color:#374151; margin-bottom:0.75rem; display:none"></div>
+  <button id="build-btn" class="btn-build btn-primary" onclick="triggerBuild()" disabled>Trigger Build</button>
+  <div id="build-status" class="status"></div>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+
+const REPO_OWNER  = 'todbot';
+const REPO_NAME   = 'CircuitPython_Custom';
+const WORKFLOW    = 'build-board-custom.yml';
+const CP_REPO     = 'adafruit/circuitpython';
+const CP_REF      = 'main';
+
+// ── State ────────────────────────────────────────────────────────────────────
+
+let _boardFrozen = [];   // frozen dirs in the selected board's mpconfigboard.mk
+let _allFrozen   = [];   // all dirs in adafruit/circuitpython/frozen/
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('gh_token');
+  if (saved) {
+    document.getElementById('token').value = saved;
+    showStatus('token-status', 'Token loaded from localStorage.', 'info');
+  }
+  loadPorts();
+  loadFrozenList();
+});
+
+// ── Token ─────────────────────────────────────────────────────────────────────
+
+function getToken() { return localStorage.getItem('gh_token') || ''; }
+
+function saveToken() {
+  const t = document.getElementById('token').value.trim();
+  if (!t) { showStatus('token-status', 'Token is empty.', 'error'); return; }
+  localStorage.setItem('gh_token', t);
+  showStatus('token-status', 'Token saved.', 'success');
+}
+
+function clearToken() {
+  localStorage.removeItem('gh_token');
+  document.getElementById('token').value = '';
+  showStatus('token-status', 'Token cleared.', 'info');
+}
+
+// ── GitHub API ────────────────────────────────────────────────────────────────
+
+async function ghFetch(url, opts = {}) {
+  const token = getToken();
+  const headers = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(opts.headers || {}),
+  };
+  const res = await fetch(url, { ...opts, headers });
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const j = await res.json(); msg += ': ' + (j.message || JSON.stringify(j)); } catch {}
+    throw new Error(msg);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+function ghContents(path, ref = CP_REF) {
+  return ghFetch(`https://api.github.com/repos/${CP_REPO}/contents/${encodeURI(path)}?ref=${ref}`);
+}
+
+function decodeBase64(b64) {
+  return decodeURIComponent(
+    atob(b64.replace(/\s/g, '')).split('').map(c =>
+      '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+    ).join('')
+  );
+}
+
+// ── Ports & Boards ────────────────────────────────────────────────────────────
+
+async function loadPorts() {
+  try {
+    const entries = await ghContents('ports');
+    const ports = entries
+      .filter(e => e.type === 'dir')
+      .map(e => e.name)
+      .sort();
+    const sel = document.getElementById('port-select');
+    sel.innerHTML = '<option value="">— select port —</option>' +
+      ports.map(p => `<option value="${p}">${p}</option>`).join('');
+  } catch (e) {
+    document.getElementById('port-select').innerHTML =
+      `<option value="">Error: ${e.message}</option>`;
+  }
+}
+
+async function onPortChange() {
+  const port = document.getElementById('port-select').value;
+  const bsel = document.getElementById('board-select');
+  bsel.innerHTML = '<option value="">Loading…</option>';
+  resetBoardUI();
+  if (!port) { bsel.innerHTML = '<option value="">Select a port first</option>'; return; }
+  try {
+    const entries = await ghContents(`ports/${port}/boards`);
+    // zephyr-cp has vendor subdirectories; flatten one level if needed
+    const boards = [];
+    for (const e of entries) {
+      if (e.type === 'dir') {
+        // Check if this looks like a board (has mpconfigboard.mk) vs a vendor dir
+        boards.push(e.name);
+      } else if (e.type === 'submodule') {
+        boards.push(e.name);
+      }
+    }
+    boards.sort();
+    bsel.innerHTML = '<option value="">— select board —</option>' +
+      boards.map(b => `<option value="${b}">${b}</option>`).join('');
+  } catch (e) {
+    bsel.innerHTML = `<option value="">Error: ${e.message}</option>`;
+  }
+}
+
+async function onBoardChange() {
+  const port  = document.getElementById('port-select').value;
+  const board = document.getElementById('board-select').value;
+  resetBoardUI();
+  document.getElementById('build-btn').disabled = !board;
+  if (!board) return;
+  document.getElementById('flags-container').innerHTML = '<p class="loading">Loading board config…</p>';
+  try {
+    const file = await ghContents(`ports/${port}/boards/${board}/mpconfigboard.mk`);
+    const text = decodeBase64(file.content);
+    const { flags, frozenDirs } = parseMk(text);
+    _boardFrozen = frozenDirs;
+    renderFlags(flags);
+    document.getElementById('flags-count').textContent =
+      `(${Object.keys(flags).length} board-level settings)`;
+    syncFrozenChecks();
+    updateBuildSummary();
+  } catch (e) {
+    document.getElementById('flags-container').innerHTML =
+      `<p style="color:#dc2626">Could not load board config: ${e.message}</p>`;
+  }
+}
+
+function resetBoardUI() {
+  _boardFrozen = [];
+  document.getElementById('flags-container').innerHTML = '<p class="loading">Select a board to see its flags.</p>';
+  document.getElementById('flags-count').textContent = '';
+  document.getElementById('build-summary').style.display = 'none';
+  document.getElementById('build-btn').disabled = true;
+  syncFrozenChecks();
+}
+
+// ── .mk parser ────────────────────────────────────────────────────────────────
+
+function parseMk(text) {
+  const flags = {};
+  const frozenDirs = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const fm = line.match(/^FROZEN_MPY_DIRS\s*\+?=\s*\$\(TOP\)\/frozen\/([^\s\/]+)/);
+    if (fm) { frozenDirs.push(fm[1]); continue; }
+    const am = line.match(/^(CIRCUITPY_[A-Z0-9_]+)\s*\??=\s*(.+)$/);
+    if (am) flags[am[1]] = am[2].trim();
+  }
+  return { flags, frozenDirs };
+}
+
+// ── Flags UI ──────────────────────────────────────────────────────────────────
+
+function renderFlags(flags) {
+  const container = document.getElementById('flags-container');
+  if (Object.keys(flags).length === 0) {
+    container.innerHTML = '<p class="hint">No CIRCUITPY_* overrides in this board\'s config.</p>';
+    return;
+  }
+  const rows = Object.entries(flags).sort(([a],[b]) => a.localeCompare(b)).map(([k, v]) => `
+    <tr>
+      <td style="width:2rem;text-align:center">
+        <input type="checkbox" data-flag-key="${k}" onchange="onFlagCheck(this)">
+      </td>
+      <td><code>${k}</code></td>
+      <td>
+        <input class="val-input" type="text" data-flag-val="${k}" value="${v}" disabled
+               oninput="updateBuildSummary()">
+      </td>
+      <td class="original">default: ${v}</td>
+    </tr>`).join('');
+  container.innerHTML = `
+    <table class="flags-table">
+      <thead><tr><th></th><th>Flag</th><th>Value</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function onFlagCheck(cb) {
+  const valInput = document.querySelector(`input[data-flag-val="${cb.dataset.flagKey}"]`);
+  if (valInput) valInput.disabled = !cb.checked;
+  updateBuildSummary();
+}
+
+// ── Frozen UI ─────────────────────────────────────────────────────────────────
+
+async function loadFrozenList() {
+  try {
+    const entries = await ghContents('frozen');
+    _allFrozen = entries
+      .filter(e => e.type === 'dir' || e.type === 'submodule')
+      .map(e => e.name)
+      .sort();
+    renderFrozen();
+  } catch (e) {
+    document.getElementById('frozen-container').innerHTML =
+      `<p style="color:#dc2626">Error loading frozen modules: ${e.message}</p>`;
+  }
+}
+
+function renderFrozen() {
+  if (_allFrozen.length === 0) {
+    document.getElementById('frozen-container').innerHTML = '<p class="loading">Loading…</p>';
+    return;
+  }
+  const html = '<div class="frozen-grid">' +
+    _allFrozen.map(m => {
+      const isBoardDefault = _boardFrozen.includes(m);
+      return `<label class="frozen-item ${isBoardDefault ? 'board-default' : ''}">
+        <input type="checkbox" name="frozen" value="${m}"
+               ${isBoardDefault ? 'checked' : ''}
+               onchange="onFrozenChange(this, '${m}')">
+        ${m}
+      </label>`;
+    }).join('') +
+    '</div>';
+  document.getElementById('frozen-container').innerHTML = html;
+}
+
+function syncFrozenChecks() {
+  // Re-render so bold/checked states match current _boardFrozen
+  renderFrozen();
+}
+
+function onFrozenChange(cb, mod) {
+  // If user unchecks a board default, auto-enable clear_frozen
+  if (!cb.checked && _boardFrozen.includes(mod)) {
+    document.getElementById('clear-frozen').checked = true;
+    document.querySelector('.card label[for]') // visual feedback handled by summary
+  }
+  updateBuildSummary();
+}
+
+function onClearFrozenChange() {
+  updateBuildSummary();
+}
+
+// ── Collect inputs ────────────────────────────────────────────────────────────
+
+function collectFlags() {
+  const parts = [];
+  document.querySelectorAll('input[data-flag-key]:checked').forEach(cb => {
+    const val = document.querySelector(`input[data-flag-val="${cb.dataset.flagKey}"]`);
+    if (val) parts.push(`${cb.dataset.flagKey}=${val.value.trim()}`);
+  });
+  const extra = document.getElementById('extra-flags').value.trim();
+  if (extra) parts.push(extra);
+  return parts.join(' ');
+}
+
+function collectFrozenModules() {
+  const clearFrozen = document.getElementById('clear-frozen').checked;
+  const checked = [...document.querySelectorAll('input[name=frozen]:checked')].map(cb => cb.value);
+  if (clearFrozen) {
+    // Pass all checked modules (workflow will clear board defaults first, then add these)
+    return checked.join(' ');
+  } else {
+    // Pass only modules NOT already in the board's config (avoid duplicates)
+    return checked.filter(m => !_boardFrozen.includes(m)).join(' ');
+  }
+}
+
+// ── Build summary ─────────────────────────────────────────────────────────────
+
+function updateBuildSummary() {
+  const board = document.getElementById('board-select').value;
+  if (!board) return;
+
+  const flags = collectFlags();
+  const frozen = collectFrozenModules();
+  const clearFrozen = document.getElementById('clear-frozen').checked;
+  const version = document.getElementById('version').value.trim() || 'latest';
+  const branch = document.getElementById('branch').value.trim() || 'main';
+
+  const parts = [`<b>${board}</b>`, `version: ${version}`];
+  if (version === 'latest' && branch !== 'main') parts.push(`branch: ${branch}`);
+  if (document.getElementById('debug').checked) parts.push('<b>debug</b>');
+  if (flags) parts.push(`flags: <code>${escHtml(flags)}</code>`);
+  if (clearFrozen) parts.push('clear board frozen');
+  if (frozen) parts.push(`add frozen: <code>${escHtml(frozen)}</code>`);
+
+  const el = document.getElementById('build-summary');
+  el.innerHTML = '→ ' + parts.join(' &nbsp;·&nbsp; ');
+  el.style.display = 'block';
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Trigger build ─────────────────────────────────────────────────────────────
+
+async function triggerBuild() {
+  const board = document.getElementById('board-select').value;
+  if (!board) { showStatus('build-status', 'Please select a board.', 'error'); return; }
+  if (!getToken()) { showStatus('build-status', 'Enter and save a GitHub token first.', 'error'); return; }
+
+  const inputs = {
+    board,
+    version:        document.getElementById('version').value.trim()  || 'latest',
+    branch:         document.getElementById('branch').value.trim()   || 'main',
+    language:       document.getElementById('language').value.trim() || 'en_US',
+    debug:          String(document.getElementById('debug').checked),
+    flags:          collectFlags(),
+    frozen_modules: collectFrozenModules(),
+    clear_frozen:   String(document.getElementById('clear-frozen').checked),
+  };
+
+  const btn = document.getElementById('build-btn');
+  btn.disabled = true;
+  btn.textContent = 'Triggering…';
+  showStatus('build-status', 'Sending request to GitHub…', 'info');
+
+  try {
+    await ghFetch(
+      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW}/dispatches`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref: 'main', inputs }),
+      }
+    );
+    showStatus(
+      'build-status',
+      `Build triggered for <b>${board}</b>! ` +
+      `<a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions" target="_blank">` +
+      `View on GitHub Actions →</a>`,
+      'success'
+    );
+  } catch (e) {
+    showStatus('build-status', `Error: ${e.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Trigger Build';
+  }
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function showStatus(id, msg, type) {
+  const el = document.getElementById(id);
+  el.className = `status ${type}`;
+  el.innerHTML = msg;
+}
+</script>
+
+</body>
+</html>
