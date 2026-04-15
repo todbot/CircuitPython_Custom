@@ -454,6 +454,27 @@ function ghContents(path, ref = CP_REF) {
   return ghFetch(`https://api.github.com/repos/${CP_REPO}/contents/${encodeURI(path)}?ref=${ref}`);
 }
 
+// Cached variant — stores the decoded text in sessionStorage so repeated
+// page loads / board switches don't burn unauthenticated API quota.
+async function ghContentsText(path, ref = CP_REF) {
+  const key = `ghc:${ref}:${path}`;
+  const hit = sessionStorage.getItem(key);
+  if (hit !== null) return hit;
+  const file = await ghContents(path, ref);
+  const text = decodeBase64(file.content);
+  try { sessionStorage.setItem(key, text); } catch (_) {} // ignore quota errors
+  return text;
+}
+
+async function ghContentsJSON(path, ref = CP_REF) {
+  const key = `ghj:${ref}:${path}`;
+  const hit = sessionStorage.getItem(key);
+  if (hit !== null) return JSON.parse(hit);
+  const file = await ghContents(path, ref);
+  try { sessionStorage.setItem(key, JSON.stringify(file)); } catch (_) {}
+  return file;
+}
+
 function decodeBase64(b64) {
   return decodeURIComponent(atob(b64.replace(/\s/g,'')).split('').map(c =>
     '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
@@ -464,7 +485,10 @@ function decodeBase64(b64) {
 
 async function loadVersionTags() {
   try {
-    const tags = await ghFetch(`https://api.github.com/repos/${CP_REPO}/tags?per_page=100`);
+    const cacheKey = `ghj:tags:${CP_REPO}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    const tags = cached ? JSON.parse(cached) : await ghFetch(`https://api.github.com/repos/${CP_REPO}/tags?per_page=100`);
+    if (!cached) try { sessionStorage.setItem(cacheKey, JSON.stringify(tags)); } catch (_) {}
     const sel = document.getElementById('version-select');
     const semver = tags
       .map(t => t.name)
@@ -490,7 +514,7 @@ async function loadFlagsData() {
 
 async function loadPorts() {
   try {
-    const entries = await ghContents('ports');
+    const entries = await ghContentsJSON('ports');
     const ports = entries.filter(e => !e.name.startsWith('.')).map(e => e.name).sort();
     const sel = document.getElementById('port-select');
     sel.innerHTML = '<option value="">— select port —</option>' +
@@ -685,15 +709,13 @@ async function loadBoardConfig(port, board) {
   try {
     const fetchPort = _portConfigTexts.hasOwnProperty(port)
       ? Promise.resolve(_portConfigTexts[port])
-      : ghContents(`ports/${port}/mpconfigport.mk`)
-          .then(f => decodeBase64(f.content)).catch(() => null);
+      : ghContentsText(`ports/${port}/mpconfigport.mk`).catch(() => null);
     const fetchBase = _baseConfigText !== undefined
       ? Promise.resolve(_baseConfigText)
-      : ghContents('py/circuitpy_mpconfig.mk')
-          .then(f => decodeBase64(f.content)).catch(() => null);
+      : ghContentsText('py/circuitpy_mpconfig.mk').catch(() => null);
 
-    const [boardFile, portText, baseText] = await Promise.all([
-      ghContents(`ports/${port}/boards/${board}/mpconfigboard.mk`),
+    const [boardText, portText, baseText] = await Promise.all([
+      ghContentsText(`ports/${port}/boards/${board}/mpconfigboard.mk`),
       fetchPort,
       fetchBase,
     ]);
@@ -701,7 +723,6 @@ async function loadBoardConfig(port, board) {
     if (!_portConfigTexts.hasOwnProperty(port)) _portConfigTexts[port] = portText;
     if (_baseConfigText === undefined) _baseConfigText = baseText;
 
-    const boardText = decodeBase64(boardFile.content);
     const { flags, frozenDirs } = parseMk(boardText);
     _boardFlags    = flags;
     _boardFrozen   = frozenDirs;
@@ -942,7 +963,7 @@ function filterFeatures(q) {
 
 async function loadFrozenList() {
   try {
-    const entries = await ghContents('frozen');
+    const entries = await ghContentsJSON('frozen');
     _allFrozen = entries.filter(e => !e.name.startsWith('.')).map(e => e.name).sort();
     renderFrozen();
   } catch (e) {
