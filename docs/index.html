@@ -283,7 +283,13 @@
 <!-- ── CIRCUITPY_* — NORMAL (checklist) ──────────────────────── -->
 <h2>CIRCUITPY_* Features <span id="features-count" style="font-size:0.8rem;font-weight:400;color:#6b7280"></span></h2>
 <div class="card normal-only">
-  <p class="hint" style="margin-top:0">Check a flag to override it. <span style="color:#d97706;font-weight:600">Amber</span> = board explicitly sets this value.</p>
+  <p class="hint" style="margin-top:0">Check a flag to override it. <span style="color:#d97706;font-weight:600">Amber</span> = board explicitly sets this value. Select a board to see its overrides.</p>
+  <div class="search-wrap" style="margin-bottom:0.65rem">
+    <input type="search" id="features-search" placeholder="Filter flags…"
+           autocomplete="off" oninput="filterFeatures(this.value)">
+    <button class="search-clear" id="features-search-clear"
+            onclick="document.getElementById('features-search').value=''; filterFeatures('')">✕</button>
+  </div>
   <div id="features-container"><p class="loading">Select a board to see its flag values, or browse all flags below.</p></div>
 </div>
 
@@ -342,6 +348,8 @@ const QUICK_BOARDS = [
   { board: 'adafruit_feather_rp2040',    port: 'raspberrypi', label: 'Feather RP2040' },
   { board: 'adafruit_qt_py_rp2040',      port: 'raspberrypi', label: 'QT Py RP2040' },
   { board: 'adafruit_feather_m4_express',port: 'atmel-samd',  label: 'Feather M4' },
+  { board: 'qtpy_m0',                    port: 'atmel-samd',  label: 'QT Py M0' },
+  { board: 'circuitplayground_express',  port: 'atmel-samd',  label: 'CPX' },
 ];
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -464,8 +472,7 @@ async function loadFlagsData() {
   try {
     const res = await fetch('circuitpy_flags.json');
     _flagsData = await res.json();
-    // If a board is already selected, re-render features
-    if (_currentBoard) renderFeatureFlags();
+    renderFeatureFlags();
   } catch (_) {}
 }
 
@@ -655,7 +662,7 @@ function resetBoardState() {
   document.getElementById('board-selected-label').innerHTML = '';
   document.getElementById('flags-container').innerHTML = '<p class="loading">Select a board to see its flags.</p>';
   document.getElementById('flags-count').textContent = '';
-  document.getElementById('features-container').innerHTML = '<p class="loading">Select a board to see its flag values.</p>';
+  renderFeatureFlags();
   document.getElementById('build-summary').style.display = 'none';
   syncFrozenChecks();
   document.getElementById('cli-container').innerHTML = '<p class="cli-placeholder">Select a board to see the equivalent build commands.</p>';
@@ -765,7 +772,9 @@ function renderFeatureFlags() {
   }).join('');
 
   container.innerHTML = html;
-  updateFeaturesCount();
+  // Re-apply any active filter after re-rendering
+  const q = document.getElementById('features-search')?.value || '';
+  if (q) filterFeatures(q); else updateFeaturesCount();
 }
 
 function toggleCategory(header) {
@@ -785,6 +794,33 @@ function onFeatureFlagChange(cb) {
 function updateFeaturesCount() {
   const n = document.querySelectorAll('input[data-feature-flag]:checked').length;
   document.getElementById('features-count').textContent = n ? `(${n} overridden)` : '';
+}
+
+function filterFeatures(q) {
+  document.getElementById('features-search-clear').style.display = q ? 'block' : 'none';
+  const lower = q.toLowerCase();
+  let visibleTotal = 0;
+  document.querySelectorAll('.feature-category').forEach(cat => {
+    let visibleInCat = 0;
+    cat.querySelectorAll('.feature-row').forEach(row => {
+      const key  = row.querySelector('input[data-feature-flag]')?.dataset.featureFlag || '';
+      const desc = row.querySelector('.feature-desc')?.textContent || '';
+      const match = !q || key.toLowerCase().includes(lower) || desc.toLowerCase().includes(lower);
+      row.style.display = match ? '' : 'none';
+      if (match) visibleInCat++;
+    });
+    cat.style.display = visibleInCat ? '' : 'none';
+    // Auto-expand categories that have matches when searching
+    if (q && visibleInCat) {
+      const header = cat.querySelector('.feature-category-header');
+      const grid   = cat.querySelector('.feature-grid');
+      if (header && header.classList.contains('collapsed')) {
+        header.classList.remove('collapsed');
+        grid.style.display = '';
+      }
+    }
+    visibleTotal += visibleInCat;
+  });
 }
 
 // ── Frozen modules ────────────────────────────────────────────────────────────
