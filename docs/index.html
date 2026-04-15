@@ -381,7 +381,7 @@ let _searchActive     = -1;        // keyboard nav index in search dropdown
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const saved = localStorage.getItem('gh_token');
   if (saved) {
     document.getElementById('token').value = saved;
@@ -389,9 +389,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   renderQuickBoards();
   loadPorts();          // for advanced view port select
-  loadFrozenList();
   loadVersionTags();
   loadFlagsData();
+
+  await loadMkCache();                          // pre-populate mk caches from repo JSON
+  if (!_allFrozen.length) loadFrozenList();     // only hits API if cache missed
+
   selectBoard(QUICK_BOARDS[0].port, QUICK_BOARDS[0].board);
 
   // Close search dropdown on outside click
@@ -399,6 +402,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!e.target.closest('.search-wrap')) closeSearchDropdown();
   });
 });
+
+// ── mk cache (pre-bundled in repo, avoids API calls on load) ─────────────────
+
+async function loadMkCache() {
+  try {
+    const res = await fetch('mk_cache.json');
+    if (!res.ok) return;
+    const cache = await res.json();
+
+    // Base mk
+    if (cache.base_mk) _baseConfigText = cache.base_mk;
+
+    // Port mks
+    if (cache.port_mks) Object.assign(_portConfigTexts, cache.port_mks);
+
+    // Frozen modules list
+    if (cache.frozen_modules?.length) {
+      _allFrozen = cache.frozen_modules;
+      renderFrozen();
+    }
+
+    // Board mks — store in sessionStorage so ghContentsText() finds them
+    // Key format matches ghContentsText: "ghc:<ref>:ports/<port>/boards/<board>/mpconfigboard.mk"
+    if (cache.board_mks) {
+      for (const [path, text] of Object.entries(cache.board_mks)) {
+        const key = `ghc:${CP_REF}:ports/${path}/mpconfigboard.mk`;
+        try { sessionStorage.setItem(key, text); } catch (_) {}
+      }
+    }
+  } catch (_) {
+    // Cache miss is fine — fall through to live API
+  }
+}
 
 // ── View toggle ───────────────────────────────────────────────────────────────
 
