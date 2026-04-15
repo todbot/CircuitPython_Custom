@@ -8,184 +8,198 @@
     *, *::before, *::after { box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      max-width: 860px;
+      max-width: 900px;
       margin: 2rem auto;
-      padding: 0 1.25rem;
+      padding: 0 1.25rem 4rem;
       color: #1f2937;
-      background: #f9fafb;
+      background: #f3f4f6;
     }
-    h1 { color: #1d4ed8; margin-bottom: 0.25rem; }
-    h1 span { color: #6b7280; font-weight: 400; font-size: 1rem; }
-    h2 {
-      border-bottom: 2px solid #e5e7eb;
-      padding-bottom: 0.4rem;
-      margin-top: 2rem;
-      font-size: 1.1rem;
-      color: #374151;
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
     }
-    .card {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      padding: 1.25rem;
-      margin: 1rem 0;
+    h1 { color: #1d4ed8; margin: 0; }
+    h1 small { color: #6b7280; font-weight: 400; font-size: 0.9rem; }
+    h2 { border-bottom: 2px solid #e5e7eb; padding-bottom: 0.4rem; margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: #374151; }
+    .card { background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.1rem 1.25rem; margin-bottom: 0.25rem; }
+
+    /* View toggle */
+    .view-tabs { display: flex; gap: 0; border: 1px solid #d1d5db; border-radius: 0.375rem; overflow: hidden; }
+    .view-tabs button {
+      padding: 0.35rem 1rem; border: none; background: white; color: #6b7280;
+      font-size: 0.875rem; font-weight: 500; cursor: pointer;
     }
-    label { display: block; margin: 0.6rem 0 0.2rem; font-weight: 500; font-size: 0.9rem; }
-    input[type=text], input[type=password], select {
-      width: 100%;
-      padding: 0.45rem 0.65rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
-      font-size: 0.95rem;
-      background: white;
+    .view-tabs button.active { background: #1d4ed8; color: white; }
+    .view-tabs button:not(.active):hover { background: #f3f4f6; }
+
+    /* View visibility */
+    body[data-view="normal"]   .advanced-only { display: none !important; }
+    body[data-view="advanced"] .normal-only   { display: none !important; }
+
+    /* Form elements */
+    label { display: block; margin: 0.6rem 0 0.2rem; font-weight: 500; font-size: 0.875rem; }
+    input[type=text], input[type=password], input[type=search], select, textarea {
+      width: 100%; padding: 0.45rem 0.65rem; border: 1px solid #d1d5db;
+      border-radius: 0.375rem; font-size: 0.925rem; background: white;
     }
-    input[type=text]:focus, input[type=password]:focus, select:focus {
-      outline: 2px solid #3b82f6;
-      outline-offset: 1px;
-    }
+    input:focus, select:focus { outline: 2px solid #3b82f6; outline-offset: 1px; }
+    .hint { font-size: 0.78rem; color: #6b7280; margin: 0.15rem 0 0; }
     .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-    .row4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; }
-    .hint { font-size: 0.8rem; color: #6b7280; margin: 0.2rem 0 0; }
+    .row4 { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end; }
     .token-row { display: flex; gap: 0.5rem; }
     .token-row input { flex: 1; }
-    button {
-      padding: 0.45rem 1rem;
-      border: none;
-      border-radius: 0.375rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .btn-primary { background: #1d4ed8; color: white; }
+
+    /* Buttons */
+    button { padding: 0.45rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.875rem; cursor: pointer; font-weight: 500; }
+    .btn-primary   { background: #1d4ed8; color: white; }
     .btn-primary:hover { background: #1e40af; }
     .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
     .btn-secondary { background: #e5e7eb; color: #374151; }
     .btn-secondary:hover { background: #d1d5db; }
-    .btn-build {
-      background: #16a34a;
-      color: white;
-      padding: 0.75rem 2.5rem;
-      font-size: 1rem;
-      margin-top: 0.5rem;
-    }
+    .btn-build { background: #16a34a; color: white; padding: 0.75rem 2.5rem; font-size: 1rem; }
     .btn-build:hover { background: #15803d; }
     .btn-build:disabled { background: #86efac; cursor: not-allowed; }
 
-    /* flags table */
-    .flags-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-    .flags-table th {
-      text-align: left;
-      padding: 0.3rem 0.5rem;
-      background: #f3f4f6;
-      border-bottom: 2px solid #e5e7eb;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      color: #6b7280;
-      letter-spacing: 0.05em;
+    /* Quick-select board buttons */
+    .quick-boards { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .quick-boards button {
+      background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+      font-size: 0.8rem; padding: 0.3rem 0.75rem;
     }
-    .flags-table td { padding: 0.25rem 0.5rem; border-bottom: 1px solid #f3f4f6; }
-    .flags-table tr:hover td { background: #f9fafb; }
-    .flags-table code { font-size: 0.85rem; color: #1d4ed8; }
-    .val-input {
-      width: 70px !important;
-      padding: 0.2rem 0.4rem !important;
-      font-size: 0.875rem !important;
-      font-family: monospace;
-    }
-    .original { color: #9ca3af; font-size: 0.8rem; }
+    .quick-boards button:hover { background: #dbeafe; }
+    .quick-boards button.selected { background: #1d4ed8; color: white; border-color: #1d4ed8; }
 
-    /* frozen grid */
-    .frozen-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-      gap: 0.2rem;
-      margin-top: 0.75rem;
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.375rem;
-      padding: 0.5rem;
+    /* Board search */
+    .search-wrap { position: relative; }
+    #board-search { padding-right: 2rem; }
+    .search-clear {
+      position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: #9ca3af; font-size: 1rem;
+      cursor: pointer; padding: 0; display: none;
     }
+    #search-dropdown {
+      position: absolute; z-index: 100; width: 100%; background: white;
+      border: 1px solid #d1d5db; border-radius: 0.375rem; box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      max-height: 280px; overflow-y: auto; display: none;
+    }
+    .search-item {
+      padding: 0.4rem 0.75rem; cursor: pointer; font-size: 0.875rem;
+      display: flex; justify-content: space-between;
+    }
+    .search-item:hover, .search-item.active { background: #eff6ff; }
+    .search-item .port-tag { color: #6b7280; font-size: 0.75rem; }
+    .search-loading { padding: 0.5rem 0.75rem; color: #6b7280; font-size: 0.875rem; font-style: italic; }
+    .board-selected-badge {
+      display: inline-block; background: #dbeafe; color: #1e40af;
+      padding: 0.2rem 0.6rem; border-radius: 0.25rem; font-size: 0.875rem;
+      margin-top: 0.4rem; font-weight: 500;
+    }
+
+    /* Feature flag checklist */
+    .feature-category { margin-top: 1rem; }
+    .feature-category-header {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #6b7280; padding: 0.3rem 0;
+      border-bottom: 1px solid #f3f4f6; margin-bottom: 0.25rem;
+      display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
+      user-select: none;
+    }
+    .feature-category-header .toggle-arrow { transition: transform 0.15s; }
+    .feature-category-header.collapsed .toggle-arrow { transform: rotate(-90deg); }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 0.15rem; }
+    .feature-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0.1rem; border-radius: 0.25rem; }
+    .feature-row:hover { background: #f9fafb; }
+    .feature-row label { margin: 0; font-weight: 400; cursor: pointer; flex: 1; min-width: 0; }
+    .feature-name { font-family: monospace; font-size: 0.8rem; color: #1d4ed8; display: block; }
+    .feature-desc { font-size: 0.75rem; color: #6b7280; }
+    .feature-board-val { font-size: 0.7rem; color: #d97706; font-weight: 600; white-space: nowrap; }
+    .feature-val-input { width: 48px !important; padding: 0.15rem 0.3rem !important; font-size: 0.8rem !important; font-family: monospace; text-align: center; }
+
+    /* Advanced flags table */
+    .flags-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .flags-table th { text-align: left; padding: 0.3rem 0.5rem; background: #f3f4f6; border-bottom: 2px solid #e5e7eb; font-size: 0.75rem; text-transform: uppercase; color: #6b7280; letter-spacing: 0.05em; }
+    .flags-table td { padding: 0.25rem 0.5rem; border-bottom: 1px solid #f9fafb; }
+    .flags-table tr:hover td { background: #f9fafb; }
+    .flags-table code { font-size: 0.82rem; color: #1d4ed8; }
+    .val-input { width: 72px !important; padding: 0.2rem 0.4rem !important; font-size: 0.875rem !important; font-family: monospace; }
+    .original { color: #9ca3af; font-size: 0.78rem; }
+
+    /* Frozen modules */
+    .frozen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 0.2rem; margin-top: 0.75rem; max-height: 300px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 0.5rem; }
     .frozen-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; padding: 0.1rem 0; }
     .frozen-item.board-default { font-weight: 600; color: #1d4ed8; }
 
-    /* status */
-    .status {
-      padding: 0.75rem 1rem;
-      border-radius: 0.375rem;
-      margin-top: 0.75rem;
-      display: none;
-    }
+    /* CLI block */
+    .cli-block { background: #1e1e2e; color: #cdd6f4; border-radius: 0.5rem; padding: 1rem 1.25rem; font-family: 'SF Mono','Fira Code',monospace; font-size: 0.83rem; line-height: 1.6; white-space: pre; overflow-x: auto; position: relative; }
+    .cli-block .cm { color: #6c7086; }
+    .cli-block .kw { color: #89b4fa; }
+    .cli-block .vl { color: #a6e3a1; }
+    .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: #313244; color: #cdd6f4; border: none; border-radius: 0.25rem; padding: 0.25rem 0.6rem; font-size: 0.75rem; cursor: pointer; }
+    .copy-btn:hover { background: #45475a; }
+
+    /* Status messages */
+    .status { padding: 0.65rem 1rem; border-radius: 0.375rem; margin-top: 0.75rem; display: none; font-size: 0.9rem; }
     .status.info    { background: #dbeafe; color: #1e40af; display: block; }
     .status.success { background: #dcfce7; color: #166534; display: block; }
     .status.error   { background: #fee2e2; color: #991b1b; display: block; }
     .status a { color: inherit; font-weight: 600; }
 
-    .loading { color: #9ca3af; font-style: italic; font-size: 0.9rem; padding: 0.5rem 0; }
-    .badge {
-      display: inline-block;
-      background: #fef9c3;
-      color: #854d0e;
-      padding: 0.1rem 0.4rem;
-      border-radius: 0.25rem;
-      font-size: 0.7rem;
-      font-weight: 600;
-      vertical-align: middle;
-    }
-    .warn { color: #b45309; font-size: 0.8rem; margin-top: 0.25rem; }
-    .cli-block {
-      background: #1e1e2e;
-      color: #cdd6f4;
-      border-radius: 0.5rem;
-      padding: 1rem 1.25rem;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      font-size: 0.85rem;
-      line-height: 1.6;
-      white-space: pre;
-      overflow-x: auto;
-      position: relative;
-    }
-    .cli-block .comment { color: #6c7086; }
-    .cli-block .cmd { color: #cdd6f4; }
-    .cli-block .kw { color: #89b4fa; }
-    .cli-block .val { color: #a6e3a1; }
+    .loading { color: #9ca3af; font-style: italic; font-size: 0.875rem; }
+    .badge { display: inline-block; background: #fef9c3; color: #854d0e; padding: 0.1rem 0.4rem; border-radius: 0.25rem; font-size: 0.7rem; font-weight: 600; vertical-align: middle; }
     .cli-placeholder { color: #9ca3af; font-style: italic; font-size: 0.875rem; }
-    .copy-btn {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      background: #313244;
-      color: #cdd6f4;
-      border: none;
-      border-radius: 0.25rem;
-      padding: 0.25rem 0.6rem;
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-    .copy-btn:hover { background: #45475a; }
+    .build-summary { font-size: 0.875rem; color: #374151; margin-bottom: 0.75rem; }
   </style>
 </head>
-<body>
+<body data-view="normal">
 
-<h1>CircuitPython Custom Build <span>— todbot/CircuitPython_Custom</span></h1>
+<header>
+  <h1>CircuitPython Custom Build <small>todbot/CircuitPython_Custom</small></h1>
+  <div class="view-tabs">
+    <button onclick="setView('normal')"   id="tab-normal"   class="active">Normal</button>
+    <button onclick="setView('advanced')" id="tab-advanced">Advanced</button>
+  </div>
+</header>
 
-<!-- Token -->
+<!-- ── TOKEN ──────────────────────────────────────────────────── -->
 <h2>GitHub Token</h2>
 <div class="card">
-  <label for="token">Personal Access Token — needs <code>workflow</code> scope (or <code>repo</code>)</label>
+  <label for="token">Personal Access Token — needs <code>workflow</code> scope</label>
   <div class="token-row">
-    <input type="password" id="token" placeholder="ghp_…" autocomplete="off" onkeydown="if(event.key==='Enter') saveToken()">
+    <input type="password" id="token" placeholder="ghp_…" autocomplete="off"
+           onkeydown="if(event.key==='Enter') saveToken()">
     <button class="btn-secondary" onclick="saveToken()">Save</button>
     <button class="btn-secondary" onclick="clearToken()" title="Forget token">✕</button>
   </div>
-  <p class="hint">Stored only in your browser's localStorage. Only sent to <code>api.github.com</code>. Browse boards without a token; a token is required to trigger a build.</p>
+  <p class="hint">Stored only in your browser's localStorage. Browsing works without a token; triggering builds requires one.</p>
   <div id="token-status" class="status"></div>
 </div>
 
-<!-- Board selection -->
+<!-- ── BOARD — NORMAL ─────────────────────────────────────────── -->
 <h2>Board</h2>
-<div class="card">
+<div class="card normal-only">
+  <div class="quick-boards" id="quick-boards">
+    <!-- populated by JS -->
+  </div>
+  <label for="board-search">Search all boards</label>
+  <div class="search-wrap">
+    <input type="search" id="board-search" placeholder="e.g. pico, feather, qt_py…"
+           autocomplete="off"
+           oninput="onBoardSearch()"
+           onfocus="onBoardSearchFocus()"
+           onkeydown="onBoardSearchKey(event)">
+    <button class="search-clear" id="search-clear-btn" onclick="clearBoardSearch()">✕</button>
+    <div id="search-dropdown"></div>
+  </div>
+  <div id="board-selected-label"></div>
+</div>
+
+<!-- ── BOARD — ADVANCED ───────────────────────────────────────── -->
+<div class="card advanced-only">
   <div class="row2">
     <div>
       <label for="port-select">Port</label>
@@ -195,56 +209,99 @@
     </div>
     <div>
       <label for="board-select">Board</label>
-      <select id="board-select" onchange="onBoardChange()">
+      <select id="board-select" onchange="onAdvancedBoardChange()">
         <option value="">Select a port first</option>
       </select>
     </div>
   </div>
-  <div style="margin-top:0.75rem">
-    <label for="custom-name">Custom build name <span style="font-weight:400;color:#6b7280">(optional)</span></label>
-    <input type="text" id="custom-name" placeholder="e.g. pico-minimal-audio"
-           oninput="updateBuildSummary()" style="max-width:320px">
-    <p class="hint">Used as the artifact/run name instead of the board ID.</p>
-  </div>
 </div>
 
-<!-- Build options -->
+<!-- ── CUSTOM NAME — SHARED ───────────────────────────────────── -->
+<div class="card" style="margin-top:0.5rem">
+  <label for="custom-name">Custom build name <span style="font-weight:400;color:#6b7280">(optional — replaces board ID in artifact name)</span></label>
+  <input type="text" id="custom-name" placeholder="e.g. pico-minimal-audio"
+         oninput="updateBuildSummary()" style="max-width:340px">
+</div>
+
+<!-- ── BUILD OPTIONS — NORMAL ─────────────────────────────────── -->
 <h2>Build Options</h2>
-<div class="card">
-  <div class="row4">
+<div class="card normal-only">
+  <div class="row3">
     <div>
-      <label for="version">Version</label>
-      <input type="text" id="version" value="latest" placeholder="latest" oninput="updateBuildSummary()">
-      <p class="hint">Tag, commit, or "latest"</p>
-    </div>
-    <div>
-      <label for="branch">Branch <span class="badge">if version=latest</span></label>
-      <input type="text" id="branch" value="main" placeholder="main" oninput="updateBuildSummary()">
+      <label for="version-select">Version</label>
+      <select id="version-select" onchange="updateBuildSummary()">
+        <option value="latest">latest (main branch)</option>
+      </select>
+      <p class="hint">Loading releases…</p>
     </div>
     <div>
       <label for="language">Language</label>
-      <input type="text" id="language" value="en_US" placeholder="en_US" oninput="updateBuildSummary()">
+      <input type="text" id="language" list="language-list" value="en_US"
+             oninput="updateBuildSummary()">
+      <datalist id="language-list">
+        <option value="en_US"><option value="de_DE"><option value="fr_FR">
+        <option value="es_ES"><option value="it_IT"><option value="pt_BR">
+        <option value="ja"><option value="zh_CN"><option value="ko">
+        <option value="pl"><option value="nl"><option value="sv">
+        <option value="tr"><option value="ru"><option value="uk">
+        <option value="cs"><option value="fi"><option value="hr">
+        <option value="nb"><option value="el"><option value="hu">
+        <option value="bg"><option value="ID"><option value="fil">
+      </datalist>
+    </div>
+    <div style="align-self:end; padding-bottom:0.25rem">
+      <label><input type="checkbox" id="debug" onchange="updateBuildSummary()"> Debug build</label>
+    </div>
+  </div>
+</div>
+
+<!-- ── BUILD OPTIONS — ADVANCED ──────────────────────────────── -->
+<div class="card advanced-only">
+  <div class="row4">
+    <div>
+      <label for="version-text">Version</label>
+      <input type="text" id="version-text" value="latest" placeholder="latest, 9.2.0, abc1234"
+             oninput="updateBuildSummary()">
+      <p class="hint">Tag, commit (≥8.1.0), or "latest"</p>
     </div>
     <div>
-      <label>&nbsp;</label>
-      <label style="padding-top:0.5rem"><input type="checkbox" id="debug" onchange="updateBuildSummary()"> Debug build</label>
+      <label for="branch">Branch <span class="badge">if version=latest</span></label>
+      <input type="text" id="branch" value="main" placeholder="main"
+             oninput="updateBuildSummary()">
+    </div>
+    <div>
+      <label for="language-adv">Language</label>
+      <input type="text" id="language-adv" value="en_US" placeholder="en_US"
+             oninput="updateBuildSummary()">
+    </div>
+    <div style="align-self:end; padding-bottom:0.25rem">
+      <label><input type="checkbox" id="debug-adv" onchange="updateBuildSummary()"> Debug</label>
     </div>
   </div>
 </div>
 
-<!-- CIRCUITPY_* flags -->
-<h2>CIRCUITPY_* Overrides <span id="flags-count" style="font-size:0.8rem;font-weight:400;color:#6b7280"></span></h2>
-<div class="card">
-  <p class="hint" style="margin-top:0">Values from the board's <code>mpconfigboard.mk</code>. Check a row to override it. Use the extra field for flags not listed here.</p>
-  <div id="flags-container"><p class="loading">Select a board to see its flags.</p></div>
-  <div style="margin-top:1rem">
-    <label for="extra-flags">Extra flags</label>
-    <input type="text" id="extra-flags" placeholder="CIRCUITPY_FOO=1 CIRCUITPY_BAR=0">
-    <p class="hint">Space-separated KEY=VALUE overrides not listed above.</p>
-  </div>
+<!-- ── CIRCUITPY_* — NORMAL (checklist) ──────────────────────── -->
+<h2>CIRCUITPY_* Features <span id="features-count" style="font-size:0.8rem;font-weight:400;color:#6b7280"></span></h2>
+<div class="card normal-only">
+  <p class="hint" style="margin-top:0">Check a flag to override it. <span style="color:#d97706;font-weight:600">Amber</span> = board explicitly sets this value.</p>
+  <div id="features-container"><p class="loading">Select a board to see its flag values, or browse all flags below.</p></div>
 </div>
 
-<!-- Frozen modules -->
+<!-- ── CIRCUITPY_* — ADVANCED (board overrides table) ────────── -->
+<h2 class="advanced-only">CIRCUITPY_* Overrides <span id="flags-count" style="font-size:0.8rem;font-weight:400;color:#6b7280"></span></h2>
+<div class="card advanced-only">
+  <p class="hint" style="margin-top:0">Values from this board's <code>mpconfigboard.mk</code>. Check a row to override it.</p>
+  <div id="flags-container"><p class="loading">Select a board to see its flags.</p></div>
+</div>
+
+<!-- ── EXTRA FLAGS — SHARED ───────────────────────────────────── -->
+<div class="card" style="margin-top:0.5rem">
+  <label for="extra-flags">Extra flags <span style="font-weight:400;color:#6b7280">(any KEY=VALUE make overrides not listed above)</span></label>
+  <input type="text" id="extra-flags" placeholder="CIRCUITPY_FOO=1 CIRCUITPY_BAR=0"
+         oninput="updateBuildSummary()">
+</div>
+
+<!-- ── FROZEN MODULES ─────────────────────────────────────────── -->
 <h2>Frozen Modules</h2>
 <div class="card">
   <label>
@@ -255,34 +312,48 @@
   <div id="frozen-container"><p class="loading">Loading frozen module list…</p></div>
 </div>
 
-<!-- CLI equivalent -->
+<!-- ── CLI EQUIVALENT ─────────────────────────────────────────── -->
 <h2>CLI Equivalent</h2>
 <div class="card">
   <p class="hint" style="margin-top:0">Run these commands locally from the root of a CircuitPython checkout.</p>
   <div id="cli-container"><p class="cli-placeholder">Select a board to see the equivalent build commands.</p></div>
 </div>
 
-<!-- Build -->
+<!-- ── BUILD ──────────────────────────────────────────────────── -->
 <h2>Build</h2>
 <div class="card">
-  <div id="build-summary" style="font-size:0.875rem; color:#374151; margin-bottom:0.75rem; display:none"></div>
-  <button id="build-btn" class="btn-build btn-primary" onclick="triggerBuild()" disabled>Trigger Build</button>
+  <div id="build-summary" class="build-summary" style="display:none"></div>
+  <button id="build-btn" class="btn-build" onclick="triggerBuild()" disabled>Trigger Build</button>
   <div id="build-status" class="status"></div>
 </div>
 
 <script>
 // ── Config ──────────────────────────────────────────────────────────────────
 
-const REPO_OWNER  = 'todbot';
-const REPO_NAME   = 'CircuitPython_Custom';
-const WORKFLOW    = 'build-board-custom.yml';
-const CP_REPO     = 'adafruit/circuitpython';
-const CP_REF      = 'main';
+const REPO_OWNER = 'todbot';
+const REPO_NAME  = 'CircuitPython_Custom';
+const WORKFLOW   = 'build-board-custom.yml';
+const CP_REPO    = 'adafruit/circuitpython';
+const CP_REF     = 'main';
+
+const QUICK_BOARDS = [
+  { board: 'raspberry_pi_pico',          port: 'raspberrypi', label: 'Pico' },
+  { board: 'raspberry_pi_pico2',         port: 'raspberrypi', label: 'Pico 2' },
+  { board: 'adafruit_feather_rp2040',    port: 'raspberrypi', label: 'Feather RP2040' },
+  { board: 'adafruit_qt_py_rp2040',      port: 'raspberrypi', label: 'QT Py RP2040' },
+  { board: 'adafruit_feather_m4_express',port: 'atmel-samd',  label: 'Feather M4' },
+];
 
 // ── State ────────────────────────────────────────────────────────────────────
 
-let _boardFrozen = [];   // frozen dirs in the selected board's mpconfigboard.mk
-let _allFrozen   = [];   // all dirs in adafruit/circuitpython/frozen/
+let _currentPort  = '';
+let _currentBoard = '';
+let _boardFlags   = {};   // {FLAG: value} from board's mpconfigboard.mk
+let _boardFrozen  = [];   // frozen dirs from board's mpconfigboard.mk
+let _allFrozen    = [];   // all dirs in frozen/
+let _allBoards    = null; // [{board, port}] — null until loaded
+let _flagsData    = null; // contents of circuitpy_flags.json
+let _searchActive = -1;   // keyboard nav index in search dropdown
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 
@@ -290,11 +361,39 @@ document.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('gh_token');
   if (saved) {
     document.getElementById('token').value = saved;
-    showStatus('token-status', 'Token loaded from localStorage.', 'info');
+    showStatus('token-status', 'Token loaded.', 'info');
   }
-  loadPorts();
+  renderQuickBoards();
+  loadPorts();          // for advanced view port select
   loadFrozenList();
+  loadVersionTags();
+  loadFlagsData();
+
+  // Close search dropdown on outside click
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrap')) closeSearchDropdown();
+  });
 });
+
+// ── View toggle ───────────────────────────────────────────────────────────────
+
+function setView(v) {
+  document.body.dataset.view = v;
+  document.getElementById('tab-normal').classList.toggle('active', v === 'normal');
+  document.getElementById('tab-advanced').classList.toggle('active', v === 'advanced');
+  if (v === 'advanced' && _currentPort) syncAdvancedSelects();
+  updateBuildSummary();
+}
+
+async function syncAdvancedSelects() {
+  // Ensure advanced port select has the right port loaded, then set board
+  const psel = document.getElementById('port-select');
+  if (psel.value !== _currentPort) {
+    psel.value = _currentPort;
+    await onPortChange();
+  }
+  document.getElementById('board-select').value = _currentBoard;
+}
 
 // ── Token ─────────────────────────────────────────────────────────────────────
 
@@ -338,28 +437,49 @@ function ghContents(path, ref = CP_REF) {
 }
 
 function decodeBase64(b64) {
-  return decodeURIComponent(
-    atob(b64.replace(/\s/g, '')).split('').map(c =>
-      '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-    ).join('')
-  );
+  return decodeURIComponent(atob(b64.replace(/\s/g,'')).split('').map(c =>
+    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+  ).join(''));
 }
 
-// ── Ports & Boards ────────────────────────────────────────────────────────────
+// ── Version tags ──────────────────────────────────────────────────────────────
+
+async function loadVersionTags() {
+  try {
+    const tags = await ghFetch(`https://api.github.com/repos/${CP_REPO}/tags?per_page=100`);
+    const sel = document.getElementById('version-select');
+    const semver = tags
+      .map(t => t.name)
+      .filter(n => /^\d+\.\d+\.\d+/.test(n))
+      .slice(0, 30);
+    sel.innerHTML = '<option value="latest">latest (main branch)</option>' +
+      semver.map(v => `<option value="${v}">${v}</option>`).join('');
+    sel.nextElementSibling.textContent = '';  // clear "Loading…" hint
+  } catch (_) {}
+}
+
+// ── Flags JSON ────────────────────────────────────────────────────────────────
+
+async function loadFlagsData() {
+  try {
+    const res = await fetch('circuitpy_flags.json');
+    _flagsData = await res.json();
+    // If a board is already selected, re-render features
+    if (_currentBoard) renderFeatureFlags();
+  } catch (_) {}
+}
+
+// ── Ports & boards (Advanced view) ───────────────────────────────────────────
 
 async function loadPorts() {
   try {
     const entries = await ghContents('ports');
-    const ports = entries
-      .filter(e => e.type === 'dir')
-      .map(e => e.name)
-      .sort();
+    const ports = entries.filter(e => !e.name.startsWith('.')).map(e => e.name).sort();
     const sel = document.getElementById('port-select');
     sel.innerHTML = '<option value="">— select port —</option>' +
       ports.map(p => `<option value="${p}">${p}</option>`).join('');
   } catch (e) {
-    document.getElementById('port-select').innerHTML =
-      `<option value="">Error: ${e.message}</option>`;
+    document.getElementById('port-select').innerHTML = `<option value="">Error: ${e.message}</option>`;
   }
 }
 
@@ -367,18 +487,10 @@ async function onPortChange() {
   const port = document.getElementById('port-select').value;
   const bsel = document.getElementById('board-select');
   bsel.innerHTML = '<option value="">Loading…</option>';
-  resetBoardUI();
   if (!port) { bsel.innerHTML = '<option value="">Select a port first</option>'; return; }
   try {
     const entries = await ghContents(`ports/${port}/boards`);
-    // zephyr-cp has vendor subdirectories; flatten one level if needed
-    const boards = [];
-    for (const e of entries) {
-      if (!e.name.startsWith('.')) {
-        boards.push(e.name);
-      }
-    }
-    boards.sort();
+    const boards = entries.filter(e => !e.name.startsWith('.')).map(e => e.name).sort();
     bsel.innerHTML = '<option value="">— select board —</option>' +
       boards.map(b => `<option value="${b}">${b}</option>`).join('');
   } catch (e) {
@@ -386,43 +498,193 @@ async function onPortChange() {
   }
 }
 
-async function onBoardChange() {
+async function onAdvancedBoardChange() {
   const port  = document.getElementById('port-select').value;
   const board = document.getElementById('board-select').value;
-  resetBoardUI();
-  document.getElementById('build-btn').disabled = !board;
-  if (!board) return;
+  if (!board) { resetBoardState(); return; }
+  await selectBoard(port, board);
+}
+
+// ── Board search (Normal view) ────────────────────────────────────────────────
+
+function renderQuickBoards() {
+  const container = document.getElementById('quick-boards');
+  container.innerHTML = QUICK_BOARDS.map(q =>
+    `<button onclick="selectBoard('${q.port}','${q.board}')"
+             id="qb-${q.board}">${q.label}</button>`
+  ).join('');
+}
+
+async function loadAllBoards() {
+  if (_allBoards !== null) return;
+  _allBoards = [];  // mark as loading
+  const dropdown = document.getElementById('search-dropdown');
+  dropdown.innerHTML = '<div class="search-loading">Loading boards…</div>';
+  dropdown.style.display = 'block';
+  try {
+    const portsResp = await ghContents('ports');
+    const ports = portsResp.filter(e => !e.name.startsWith('.')).map(e => e.name);
+    const results = await Promise.allSettled(
+      ports.map(port =>
+        ghContents(`ports/${port}/boards`)
+          .then(entries => entries
+            .filter(e => !e.name.startsWith('.'))
+            .map(e => ({ board: e.name, port }))
+          )
+      )
+    );
+    _allBoards = results
+      .filter(r => r.status === 'fulfilled')
+      .flatMap(r => r.value)
+      .sort((a, b) => a.board.localeCompare(b.board));
+  } catch (e) {
+    _allBoards = [];
+    dropdown.innerHTML = `<div class="search-loading">Error: ${e.message}</div>`;
+    return;
+  }
+  const q = document.getElementById('board-search').value.trim();
+  if (q) filterSearchDropdown(q); else closeSearchDropdown();
+}
+
+function onBoardSearchFocus() {
+  const q = document.getElementById('board-search').value.trim();
+  if (_allBoards === null) {
+    loadAllBoards();
+  } else if (q) {
+    filterSearchDropdown(q);
+  }
+}
+
+function onBoardSearch() {
+  const q = document.getElementById('board-search').value.trim();
+  document.getElementById('search-clear-btn').style.display = q ? 'block' : 'none';
+  if (_allBoards === null) { loadAllBoards(); return; }
+  if (!q) { closeSearchDropdown(); return; }
+  filterSearchDropdown(q);
+}
+
+function filterSearchDropdown(q) {
+  const lower = q.toLowerCase();
+  const matches = _allBoards.filter(b => b.board.includes(lower)).slice(0, 25);
+  const dropdown = document.getElementById('search-dropdown');
+  if (!matches.length) {
+    dropdown.innerHTML = '<div class="search-loading">No boards found.</div>';
+    dropdown.style.display = 'block';
+    return;
+  }
+  _searchActive = -1;
+  dropdown.innerHTML = matches.map((b, i) =>
+    `<div class="search-item" data-i="${i}" data-board="${b.board}" data-port="${b.port}"
+          onmousedown="selectBoard('${b.port}','${b.board}'); closeSearchDropdown()">
+       <span>${highlightMatch(b.board, lower)}</span>
+       <span class="port-tag">${b.port}</span>
+     </div>`
+  ).join('');
+  dropdown.style.display = 'block';
+}
+
+function highlightMatch(text, q) {
+  const i = text.indexOf(q);
+  if (i < 0) return escHtml(text);
+  return escHtml(text.slice(0, i)) +
+    `<strong>${escHtml(text.slice(i, i + q.length))}</strong>` +
+    escHtml(text.slice(i + q.length));
+}
+
+function onBoardSearchKey(e) {
+  const dropdown = document.getElementById('search-dropdown');
+  const items = dropdown.querySelectorAll('.search-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _searchActive = Math.min(_searchActive + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('active', i === _searchActive));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _searchActive = Math.max(_searchActive - 1, 0);
+    items.forEach((el, i) => el.classList.toggle('active', i === _searchActive));
+  } else if (e.key === 'Enter' && _searchActive >= 0) {
+    e.preventDefault();
+    const el = items[_searchActive];
+    selectBoard(el.dataset.port, el.dataset.board);
+    closeSearchDropdown();
+  } else if (e.key === 'Escape') {
+    closeSearchDropdown();
+  }
+}
+
+function closeSearchDropdown() {
+  document.getElementById('search-dropdown').style.display = 'none';
+}
+
+function clearBoardSearch() {
+  document.getElementById('board-search').value = '';
+  document.getElementById('search-clear-btn').style.display = 'none';
+  closeSearchDropdown();
+}
+
+// ── Board selection (shared) ──────────────────────────────────────────────────
+
+async function selectBoard(port, board) {
+  _currentPort  = port;
+  _currentBoard = board;
+
+  // Update quick-board button highlight
+  document.querySelectorAll('.quick-boards button').forEach(btn => {
+    btn.classList.toggle('selected', btn.id === `qb-${board}`);
+  });
+
+  // Update normal view label
+  const lbl = document.getElementById('board-selected-label');
+  lbl.innerHTML = `<span class="board-selected-badge">📟 ${board} <span style="font-weight:400;color:#3b82f6">(${port})</span></span>`;
+
+  // Update search box to show selected board
+  const searchEl = document.getElementById('board-search');
+  if (searchEl) { searchEl.value = board; document.getElementById('search-clear-btn').style.display = 'block'; }
+
+  document.getElementById('build-btn').disabled = false;
+  await loadBoardConfig(port, board);
+}
+
+function resetBoardState() {
+  _currentPort  = '';
+  _currentBoard = '';
+  _boardFlags   = {};
+  _boardFrozen  = [];
+  document.getElementById('build-btn').disabled = true;
+  document.getElementById('board-selected-label').innerHTML = '';
+  document.getElementById('flags-container').innerHTML = '<p class="loading">Select a board to see its flags.</p>';
+  document.getElementById('flags-count').textContent = '';
+  document.getElementById('features-container').innerHTML = '<p class="loading">Select a board to see its flag values.</p>';
+  document.getElementById('build-summary').style.display = 'none';
+  syncFrozenChecks();
+  document.getElementById('cli-container').innerHTML = '<p class="cli-placeholder">Select a board to see the equivalent build commands.</p>';
+}
+
+async function loadBoardConfig(port, board) {
   document.getElementById('flags-container').innerHTML = '<p class="loading">Loading board config…</p>';
+  document.getElementById('features-container').innerHTML = '<p class="loading">Loading board config…</p>';
   try {
     const file = await ghContents(`ports/${port}/boards/${board}/mpconfigboard.mk`);
     const text = decodeBase64(file.content);
     const { flags, frozenDirs } = parseMk(text);
+    _boardFlags  = flags;
     _boardFrozen = frozenDirs;
     renderFlags(flags);
-    document.getElementById('flags-count').textContent =
-      `(${Object.keys(flags).length} board-level settings)`;
+    renderFeatureFlags();
+    document.getElementById('flags-count').textContent = `(${Object.keys(flags).length} board-level settings)`;
     syncFrozenChecks();
     updateBuildSummary();
   } catch (e) {
-    document.getElementById('flags-container').innerHTML =
-      `<p style="color:#dc2626">Could not load board config: ${e.message}</p>`;
+    document.getElementById('flags-container').innerHTML = `<p style="color:#dc2626">Error: ${e.message}</p>`;
+    document.getElementById('features-container').innerHTML = `<p style="color:#dc2626">Error: ${e.message}</p>`;
   }
-}
-
-function resetBoardUI() {
-  _boardFrozen = [];
-  document.getElementById('flags-container').innerHTML = '<p class="loading">Select a board to see its flags.</p>';
-  document.getElementById('flags-count').textContent = '';
-  document.getElementById('build-summary').style.display = 'none';
-  document.getElementById('build-btn').disabled = true;
-  syncFrozenChecks();
 }
 
 // ── .mk parser ────────────────────────────────────────────────────────────────
 
 function parseMk(text) {
-  const flags = {};
-  const frozenDirs = [];
+  const flags = {}, frozenDirs = [];
   for (const raw of text.split('\n')) {
     const line = raw.trim();
     if (!line || line.startsWith('#')) continue;
@@ -434,100 +696,176 @@ function parseMk(text) {
   return { flags, frozenDirs };
 }
 
-// ── Flags UI ──────────────────────────────────────────────────────────────────
+// ── Advanced flags table ──────────────────────────────────────────────────────
 
 function renderFlags(flags) {
   const container = document.getElementById('flags-container');
-  if (Object.keys(flags).length === 0) {
+  if (!Object.keys(flags).length) {
     container.innerHTML = '<p class="hint">No CIRCUITPY_* overrides in this board\'s config.</p>';
     return;
   }
-  const rows = Object.entries(flags).sort(([a],[b]) => a.localeCompare(b)).map(([k, v]) => `
+  const rows = Object.entries(flags).sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => `
     <tr>
       <td style="width:2rem;text-align:center">
         <input type="checkbox" data-flag-key="${k}" onchange="onFlagCheck(this)">
       </td>
       <td><code>${k}</code></td>
-      <td>
-        <input class="val-input" type="text" data-flag-val="${k}" value="${v}" disabled
-               oninput="updateBuildSummary()">
-      </td>
-      <td class="original">default: ${v}</td>
+      <td><input class="val-input" type="text" data-flag-val="${k}" value="${v}" disabled oninput="updateBuildSummary()"></td>
+      <td class="original">board: ${v}</td>
     </tr>`).join('');
-  container.innerHTML = `
-    <table class="flags-table">
-      <thead><tr><th></th><th>Flag</th><th>Value</th><th></th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+  container.innerHTML = `<table class="flags-table">
+    <thead><tr><th></th><th>Flag</th><th>Override value</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
 
 function onFlagCheck(cb) {
-  const valInput = document.querySelector(`input[data-flag-val="${cb.dataset.flagKey}"]`);
-  if (valInput) valInput.disabled = !cb.checked;
+  const inp = document.querySelector(`input[data-flag-val="${cb.dataset.flagKey}"]`);
+  if (inp) inp.disabled = !cb.checked;
   updateBuildSummary();
 }
 
-// ── Frozen UI ─────────────────────────────────────────────────────────────────
+// ── Normal CIRCUITPY_* checklist ──────────────────────────────────────────────
+
+function renderFeatureFlags() {
+  const container = document.getElementById('features-container');
+  if (!_flagsData) { container.innerHTML = '<p class="loading">Loading flag definitions…</p>'; return; }
+
+  const { categories, flags } = _flagsData;
+  let totalChecked = 0;
+  const html = categories.map(cat => {
+    const catFlags = Object.entries(flags).filter(([,v]) => v.cat === cat);
+    if (!catFlags.length) return '';
+    const rows = catFlags.map(([key, meta]) => {
+      const boardVal = _boardFlags[key];
+      const valHint  = boardVal !== undefined
+        ? `<span class="feature-board-val">board: ${boardVal}</span>` : '';
+      const defVal   = boardVal !== undefined ? boardVal : '1';
+      return `
+        <div class="feature-row">
+          <input type="checkbox" id="feat-${key}" data-feature-flag="${key}"
+                 onchange="onFeatureFlagChange(this)">
+          <label for="feat-${key}">
+            <span class="feature-name">${key}</span>
+            <span class="feature-desc">${meta.desc || ''}</span>
+          </label>
+          ${valHint}
+          <input class="feature-val-input" type="text"
+                 data-feature-val="${key}" value="${defVal}" disabled
+                 oninput="updateBuildSummary()">
+        </div>`;
+    }).join('');
+    return `<div class="feature-category">
+      <div class="feature-category-header" onclick="toggleCategory(this)">
+        <span class="toggle-arrow">▾</span> ${cat}
+        <span style="color:#9ca3af;font-weight:400">(${catFlags.length})</span>
+      </div>
+      <div class="feature-grid">${rows}</div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = html;
+  updateFeaturesCount();
+}
+
+function toggleCategory(header) {
+  header.classList.toggle('collapsed');
+  const grid = header.nextElementSibling;
+  grid.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+function onFeatureFlagChange(cb) {
+  const key = cb.dataset.featureFlag;
+  const val = document.querySelector(`input[data-feature-val="${key}"]`);
+  if (val) val.disabled = !cb.checked;
+  updateFeaturesCount();
+  updateBuildSummary();
+}
+
+function updateFeaturesCount() {
+  const n = document.querySelectorAll('input[data-feature-flag]:checked').length;
+  document.getElementById('features-count').textContent = n ? `(${n} overridden)` : '';
+}
+
+// ── Frozen modules ────────────────────────────────────────────────────────────
 
 async function loadFrozenList() {
   try {
     const entries = await ghContents('frozen');
-    _allFrozen = entries
-      .filter(e => !e.name.startsWith('.'))
-      .map(e => e.name)
-      .sort();
+    _allFrozen = entries.filter(e => !e.name.startsWith('.')).map(e => e.name).sort();
     renderFrozen();
   } catch (e) {
     document.getElementById('frozen-container').innerHTML =
-      `<p style="color:#dc2626">Error loading frozen modules: ${e.message}</p>`;
+      `<p style="color:#dc2626">Error: ${e.message}</p>`;
   }
 }
 
 function renderFrozen() {
-  if (_allFrozen.length === 0) {
-    document.getElementById('frozen-container').innerHTML = '<p class="loading">Loading…</p>';
-    return;
-  }
-  const html = '<div class="frozen-grid">' +
+  if (!_allFrozen.length) { document.getElementById('frozen-container').innerHTML = '<p class="loading">Loading…</p>'; return; }
+  document.getElementById('frozen-container').innerHTML =
+    '<div class="frozen-grid">' +
     _allFrozen.map(m => {
-      const isBoardDefault = _boardFrozen.includes(m);
-      return `<label class="frozen-item ${isBoardDefault ? 'board-default' : ''}">
-        <input type="checkbox" name="frozen" value="${m}"
-               ${isBoardDefault ? 'checked' : ''}
-               onchange="onFrozenChange(this, '${m}')">
+      const def = _boardFrozen.includes(m);
+      return `<label class="frozen-item ${def ? 'board-default' : ''}">
+        <input type="checkbox" name="frozen" value="${m}" ${def ? 'checked' : ''}
+               onchange="onFrozenChange(this,'${m}')">
         ${m}
       </label>`;
-    }).join('') +
-    '</div>';
-  document.getElementById('frozen-container').innerHTML = html;
+    }).join('') + '</div>';
 }
 
-function syncFrozenChecks() {
-  // Re-render so bold/checked states match current _boardFrozen
-  renderFrozen();
-}
+function syncFrozenChecks() { renderFrozen(); }
 
 function onFrozenChange(cb, mod) {
-  // If user unchecks a board default, auto-enable clear_frozen
-  if (!cb.checked && _boardFrozen.includes(mod)) {
+  if (!cb.checked && _boardFrozen.includes(mod))
     document.getElementById('clear-frozen').checked = true;
-    document.querySelector('.card label[for]') // visual feedback handled by summary
-  }
   updateBuildSummary();
 }
 
-function onClearFrozenChange() {
-  updateBuildSummary();
+function onClearFrozenChange() { updateBuildSummary(); }
+
+// ── Collect values ────────────────────────────────────────────────────────────
+
+function getVersion() {
+  const view = document.body.dataset.view;
+  return view === 'normal'
+    ? (document.getElementById('version-select').value || 'latest')
+    : (document.getElementById('version-text').value.trim() || 'latest');
 }
 
-// ── Collect inputs ────────────────────────────────────────────────────────────
+function getBranch() {
+  return document.getElementById('branch')?.value.trim() || 'main';
+}
+
+function getLanguage() {
+  const view = document.body.dataset.view;
+  return view === 'normal'
+    ? (document.getElementById('language').value.trim() || 'en_US')
+    : (document.getElementById('language-adv').value.trim() || 'en_US');
+}
+
+function getDebug() {
+  const view = document.body.dataset.view;
+  return view === 'normal'
+    ? document.getElementById('debug').checked
+    : document.getElementById('debug-adv').checked;
+}
 
 function collectFlags() {
   const parts = [];
-  document.querySelectorAll('input[data-flag-key]:checked').forEach(cb => {
-    const val = document.querySelector(`input[data-flag-val="${cb.dataset.flagKey}"]`);
-    if (val) parts.push(`${cb.dataset.flagKey}=${val.value.trim()}`);
-  });
+  const view = document.body.dataset.view;
+  if (view === 'advanced') {
+    document.querySelectorAll('input[data-flag-key]:checked').forEach(cb => {
+      const val = document.querySelector(`input[data-flag-val="${cb.dataset.flagKey}"]`);
+      if (val && !val.disabled) parts.push(`${cb.dataset.flagKey}=${val.value.trim()}`);
+    });
+  } else {
+    document.querySelectorAll('input[data-feature-flag]:checked').forEach(cb => {
+      const key = cb.dataset.featureFlag;
+      const val = document.querySelector(`input[data-feature-val="${key}"]`);
+      parts.push(`${key}=${val ? val.value.trim() : '1'}`);
+    });
+  }
   const extra = document.getElementById('extra-flags').value.trim();
   if (extra) parts.push(extra);
   return parts.join(' ');
@@ -536,83 +874,75 @@ function collectFlags() {
 function collectFrozenModules() {
   const clearFrozen = document.getElementById('clear-frozen').checked;
   const checked = [...document.querySelectorAll('input[name=frozen]:checked')].map(cb => cb.value);
-  if (clearFrozen) {
-    // Pass all checked modules (workflow will clear board defaults first, then add these)
-    return checked.join(' ');
-  } else {
-    // Pass only modules NOT already in the board's config (avoid duplicates)
-    return checked.filter(m => !_boardFrozen.includes(m)).join(' ');
-  }
+  return clearFrozen
+    ? checked.join(' ')
+    : checked.filter(m => !_boardFrozen.includes(m)).join(' ');
 }
 
-// ── Build summary ─────────────────────────────────────────────────────────────
+// ── Build summary & CLI ───────────────────────────────────────────────────────
 
 function updateBuildSummary() {
-  const board = document.getElementById('board-select').value;
-  if (!board) return;
-
-  const flags = collectFlags();
-  const frozen = collectFrozenModules();
-  const clearFrozen = document.getElementById('clear-frozen').checked;
-  const version = document.getElementById('version').value.trim() || 'latest';
-  const branch = document.getElementById('branch').value.trim() || 'main';
+  if (!_currentBoard) return;
+  const flags      = collectFlags();
+  const frozen     = collectFrozenModules();
+  const clearFroz  = document.getElementById('clear-frozen').checked;
+  const version    = getVersion();
+  const branch     = getBranch();
+  const lang       = getLanguage();
+  const debug      = getDebug();
   const customName = document.getElementById('custom-name').value.trim();
 
-  const parts = [`<b>${customName || board}</b>`, `version: ${version}`];
-  if (version === 'latest' && branch !== 'main') parts.push(`branch: ${branch}`);
-  if (document.getElementById('debug').checked) parts.push('<b>debug</b>');
-  if (flags) parts.push(`flags: <code>${escHtml(flags)}</code>`);
-  if (clearFrozen) parts.push('clear board frozen');
-  if (frozen) parts.push(`add frozen: <code>${escHtml(frozen)}</code>`);
+  const parts = [`<b>${customName || _currentBoard}</b>`, `v${version}`];
+  if (version === 'latest' && branch !== 'main') parts.push(`branch:${branch}`);
+  if (lang !== 'en_US') parts.push(`lang:${lang}`);
+  if (debug)      parts.push('<b>debug</b>');
+  if (flags)      parts.push(`flags:<code>${escHtml(flags)}</code>`);
+  if (clearFroz)  parts.push('clear-frozen');
+  if (frozen)     parts.push(`+frozen:<code>${escHtml(frozen)}</code>`);
 
   const el = document.getElementById('build-summary');
-  el.innerHTML = '→ ' + parts.join(' &nbsp;·&nbsp; ');
+  el.innerHTML = '→ ' + parts.join(' · ');
   el.style.display = 'block';
-
   updateCliCommands();
 }
 
 function updateCliCommands() {
-  const port  = document.getElementById('port-select').value;
-  const board = document.getElementById('board-select').value;
-  if (!port || !board) return;
+  if (!_currentPort || !_currentBoard) return;
+  const port       = _currentPort;
+  const board      = _currentBoard;
+  const flags      = collectFlags();
+  const frozen     = collectFrozenModules();
+  const clearFroz  = document.getElementById('clear-frozen').checked;
+  const lang       = getLanguage();
+  const debug      = getDebug() ? '1' : '0';
 
-  const flags       = collectFlags();
-  const frozen      = collectFrozenModules();
-  const clearFrozen = document.getElementById('clear-frozen').checked;
-  const lang        = document.getElementById('language').value.trim() || 'en_US';
-  const debug       = document.getElementById('debug').checked ? '1' : '0';
-
-  const lines = [];
-  const c = s => `<span class="comment">${escHtml(s)}</span>`;
+  const c = s => `<span class="cm">${escHtml(s)}</span>`;
   const k = s => `<span class="kw">${escHtml(s)}</span>`;
-  const v = s => `<span class="val">${escHtml(s)}</span>`;
+  const v = s => `<span class="vl">${escHtml(s)}</span>`;
+  const lines = [];
 
   lines.push(c('# Prerequisites (run once from repo root):'));
   lines.push(c('# pip install -r requirements-dev.txt'));
   lines.push(c('# make -C mpy-cross'));
   lines.push('');
 
-  if (clearFrozen || frozen) {
+  if (clearFroz || frozen) {
     lines.push(c('# Create frozen module override file:'));
     lines.push(`${k('cat')} > ports/${port}/user_pre_mpconfigport.mk << ${v("'EOF'")}`);
-    if (clearFrozen) {
+    if (clearFroz) {
       lines.push(c('# clear board frozen modules'));
       lines.push('FROZEN_MPY_DIRS :=');
     }
-    for (const mod of frozen.split(' ').filter(Boolean)) {
+    for (const mod of frozen.split(' ').filter(Boolean))
       lines.push(`FROZEN_MPY_DIRS += $(TOP)/frozen/${mod}`);
-    }
     lines.push(v('EOF'));
     lines.push('');
   }
 
   const makeArgs = [`BOARD=${v(board)}`];
-  if (flags) {
-    for (const f of flags.split(' ').filter(Boolean)) {
-      const [mk, mv] = f.split('=');
-      makeArgs.push(`${k(mk)}=${v(mv)}`);
-    }
+  for (const f of flags.split(' ').filter(Boolean)) {
+    const eq = f.indexOf('=');
+    makeArgs.push(`${k(f.slice(0,eq))}=${v(f.slice(eq+1))}`);
   }
   if (lang !== 'en_US') makeArgs.push(`TRANSLATION=${v(lang)}`);
   if (debug === '1')    makeArgs.push(`DEBUG=${v('1')}`);
@@ -623,92 +953,78 @@ function updateCliCommands() {
   lines.push(c('# Build:'));
   lines.push(`${k('cd')} ports/${port} && ${k('make')} -j8 ${makeArgs.join(' ')}`);
 
-  const container = document.getElementById('cli-container');
-  container.innerHTML =
-    `<div class="cli-block">` +
-    `<button class="copy-btn" onclick="copyCli()">Copy</button>` +
-    lines.join('\n') +
-    `</div>`;
-  // stash plain text for copying
-  container.dataset.plain = [
+  const plain = [
     '# Prerequisites (run once from repo root):',
     '# pip install -r requirements-dev.txt',
     '# make -C mpy-cross',
     '',
-    ...(clearFrozen || frozen ? [
+    ...(clearFroz || frozen ? [
       '# Create frozen module override file:',
       `cat > ports/${port}/user_pre_mpconfigport.mk << 'EOF'`,
-      ...(clearFrozen ? ['# clear board frozen modules', 'FROZEN_MPY_DIRS :='] : []),
+      ...(clearFroz ? ['# clear board frozen modules', 'FROZEN_MPY_DIRS :='] : []),
       ...frozen.split(' ').filter(Boolean).map(m => `FROZEN_MPY_DIRS += $(TOP)/frozen/${m}`),
-      'EOF',
-      '',
+      'EOF', '',
     ] : []),
     '# Fetch port submodules (run once per port):',
     `cd ports/${port} && make fetch-port-submodules`,
     '',
     '# Build:',
-    `cd ports/${port} && make -j8 ${['BOARD='+board, ...flags.split(' ').filter(Boolean), ...(lang!=='en_US'?['TRANSLATION='+lang]:[]), ...(debug==='1'?['DEBUG=1']:[])].join(' ')}`,
+    `cd ports/${port} && make -j8 BOARD=${board}` +
+      (flags ? ' ' + flags : '') +
+      (lang !== 'en_US' ? ` TRANSLATION=${lang}` : '') +
+      (debug === '1' ? ' DEBUG=1' : ''),
   ].join('\n');
+
+  const container = document.getElementById('cli-container');
+  container.dataset.plain = plain;
+  container.innerHTML = `<div class="cli-block"><button class="copy-btn" onclick="copyCli()">Copy</button>${lines.join('\n')}</div>`;
 }
 
 function copyCli() {
-  const text = document.getElementById('cli-container').dataset.plain;
-  if (text) navigator.clipboard.writeText(text).then(() => {
+  const text = document.getElementById('cli-container').dataset.plain || '';
+  navigator.clipboard.writeText(text).then(() => {
     const btn = document.querySelector('.copy-btn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); }
   });
-}
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ── Trigger build ─────────────────────────────────────────────────────────────
 
 async function triggerBuild() {
-  const board = document.getElementById('board-select').value;
-  if (!board) { showStatus('build-status', 'Please select a board.', 'error'); return; }
-  if (!getToken()) { showStatus('build-status', 'Enter and save a GitHub token first.', 'error'); return; }
+  if (!_currentBoard) { showStatus('build-status', 'Please select a board.', 'error'); return; }
+  if (!getToken())    { showStatus('build-status', 'Enter and save a GitHub token first.', 'error'); return; }
 
+  const version = getVersion();
   const inputs = {
-    board,
+    board:          _currentBoard,
     custom_name:    document.getElementById('custom-name').value.trim(),
-    version:        document.getElementById('version').value.trim()  || 'latest',
-    branch:         document.getElementById('branch').value.trim()   || 'main',
-    language:       document.getElementById('language').value.trim() || 'en_US',
-    debug:          String(document.getElementById('debug').checked),
+    version,
+    branch:         version === 'latest' ? getBranch() : 'main',
+    language:       getLanguage(),
+    debug:          String(getDebug()),
     flags:          collectFlags(),
     frozen_modules: collectFrozenModules(),
     clear_frozen:   String(document.getElementById('clear-frozen').checked),
   };
 
   const btn = document.getElementById('build-btn');
-  btn.disabled = true;
-  btn.textContent = 'Triggering…';
-  showStatus('build-status', 'Sending request to GitHub…', 'info');
+  btn.disabled = true; btn.textContent = 'Triggering…';
+  showStatus('build-status', 'Sending request…', 'info');
 
   try {
     await ghFetch(
       `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW}/dispatches`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ref: 'main', inputs }),
-      }
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref: 'main', inputs }) }
     );
-    showStatus(
-      'build-status',
-      `Build triggered for <b>${board}</b>! ` +
-      `<a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions" target="_blank">` +
-      `View on GitHub Actions →</a>`,
-      'success'
-    );
+    showStatus('build-status',
+      `Build triggered for <b>${_currentBoard}</b>! ` +
+      `<a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions" target="_blank">View on GitHub Actions →</a>`,
+      'success');
   } catch (e) {
     showStatus('build-status', `Error: ${e.message}`, 'error');
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Trigger Build';
+    btn.disabled = false; btn.textContent = 'Trigger Build';
   }
 }
 
@@ -719,7 +1035,10 @@ function showStatus(id, msg, type) {
   el.className = `status ${type}`;
   el.innerHTML = msg;
 }
-</script>
 
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
 </body>
 </html>
