@@ -71,10 +71,10 @@ _COMMENT_RE = re.compile(r'^#\s?(.*)')
 
 def parse_mk(mk_path: Path) -> dict:
     """
-    Parse circuitpy_mpconfig.mk and return:
+    Parse a .mk file and return:
         { 'CIRCUITPY_FOO': {'default': '...', 'comment': '...'}, ... }
 
-    Only the first ?= definition is recorded (subsequent ifdefs are skipped).
+    Only the first ?= definition per flag is recorded.
     'comment' is the immediately preceding comment block joined into one line,
     or '' if none.
     """
@@ -196,13 +196,26 @@ def main():
 
     out_path = Path(args.out)
 
-    print(f'Source : {mk_path}')
+    print(f'Source : {cp_root}')
     print(f'Output : {out_path}')
     print()
 
-    # Parse mk file
-    parsed = parse_mk(mk_path)
-    print(f'Found {len(parsed)} CIRCUITPY_* flags in mk file.')
+    # Parse all mk sources; first definition of a flag wins (highest priority first)
+    mk_sources = [
+        cp_root / 'py' / 'circuitpy_mpconfig.mk',
+        cp_root / 'py' / 'circuitpy_defns.mk',
+        *sorted((cp_root / 'ports').glob('*/mpconfigport.mk')),
+    ]
+    parsed: dict = {}
+    for src in mk_sources:
+        if not src.exists():
+            continue
+        layer = parse_mk(src)
+        new_in_layer = {k: v for k, v in layer.items() if k not in parsed}
+        parsed.update(new_in_layer)
+        if new_in_layer:
+            print(f'  {src.relative_to(cp_root)}: {len(new_in_layer)} new flags')
+    print(f'Found {len(parsed)} CIRCUITPY_* flags total.')
 
     # Load existing JSON (or start fresh)
     if out_path.exists():

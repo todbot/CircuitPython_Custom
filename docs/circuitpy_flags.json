@@ -197,6 +197,16 @@
     "CIRCUITPY_USB_MIDI_ENABLED_DEFAULT":         { "cat": "", "desc": "" },
     "CIRCUITPY_USB_MSC_ENABLED_DEFAULT":          { "cat": "", "desc": "" },
     "CIRCUITPY_USTACK":                           { "cat": "", "desc": "[auto] For debugging." },
-    "CIRCUITPY_WIFI_RADIO_SETTABLE_MAC_ADDRESS":  { "cat": "", "desc": "" }
+    "CIRCUITPY_WIFI_RADIO_SETTABLE_MAC_ADDRESS":  { "cat": "", "desc": "" },
+    "CIRCUITPY_4MB_FLASH_LARGE_USER_FS_LAYOUT":   { "cat": "", "desc": "[auto] Some 4MB non-USB boards were initially defined with 2MB firmware, almost 2MB user_fs partitions. Others were defined with 1.4M+1.4M (now a single 2.8MB) firmware partitions / 1.2MB user_fs. Keep the former as is, so that the user filesystem will be unchanged." },
+    "CIRCUITPY_AUDIOSPEED":                       { "cat": "Audio", "desc": "Audio speed control — audiospeed.SpeedChanger for real-time WAV/MP3 playback rate adjustment" },
+    "CIRCUITPY_BUILD_EXTENSIONS":                 { "cat": "", "desc": "[auto] For CircuitPython CI" },
+    "CIRCUITPY_CONSOLE_UART":                     { "cat": "", "desc": "[auto] Requires busio.UART" },
+    "CIRCUITPY_CYW43_INIT_DELAY":                 { "cat": "", "desc": "[auto] delay in ms before calling cyw43_arch_init_with_country" },
+    "CIRCUITPY_ESP_PSRAM_SIZE":                   { "cat": "", "desc": "[auto] Default to no-psram" },
+    "CIRCUITPY_LTO":                              { "cat": "", "desc": "" },
+    "CIRCUITPY_LTO_PARTITION":                    { "cat": "", "desc": "" },
+    "CIRCUITPY_MCP4822":                          { "cat": "Audio", "desc": "MCP4822 dual-channel 12-bit SPI DAC audio output support" },
+    "CIRCUITPY_TRANSLATE_OBJECT":                 { "cat": "", "desc": "[auto] Produce an object file for translate.c instead of including it in a header. The header version can be optimized on non-LTO builds *if* inlining is allowed otherwise, it blows up the binary sizes with tons of translate copies." }
   }
 }
