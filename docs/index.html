@@ -117,7 +117,8 @@
     .feature-row label { margin: 0; font-weight: 400; cursor: pointer; flex: 1; min-width: 0; }
     .feature-name { font-family: monospace; font-size: 0.8rem; color: #1d4ed8; display: block; }
     .feature-desc { font-size: 0.75rem; color: #6b7280; }
-    .feature-board-val { font-size: 0.7rem; color: #d97706; font-weight: 600; white-space: nowrap; }
+    .feature-src-board { font-size: 0.7rem; color: #d97706; font-weight: 600; white-space: nowrap; }
+    .feature-src-port  { font-size: 0.7rem; color: #0891b2; font-weight: 600; white-space: nowrap; }
     .feature-val-input { width: 48px !important; padding: 0.15rem 0.3rem !important; font-size: 0.8rem !important; font-family: monospace; text-align: center; }
 
     /* Advanced flags table */
@@ -283,7 +284,10 @@
 <!-- ── CIRCUITPY_* — NORMAL (checklist) ──────────────────────── -->
 <h2>CIRCUITPY_* Features <span id="features-count" style="font-size:0.8rem;font-weight:400;color:#6b7280"></span></h2>
 <div class="card normal-only">
-  <p class="hint" style="margin-top:0">Check a flag to override it. <span style="color:#d97706;font-weight:600">Amber</span> = board explicitly sets this value. Select a board to see its overrides.</p>
+  <p class="hint" style="margin-top:0">Check a flag to override it.
+    <span style="color:#d97706;font-weight:600">Amber</span> = board sets this explicitly.
+    <span style="color:#0891b2;font-weight:600">Teal</span> = port default.
+    Select a board to see effective values.</p>
   <div class="search-wrap" style="margin-bottom:0.65rem">
     <input type="search" id="features-search" placeholder="Filter flags…"
            autocomplete="off" oninput="filterFeatures(this.value)">
@@ -360,8 +364,11 @@ let _boardFlags   = {};   // {FLAG: value} from board's mpconfigboard.mk
 let _boardFrozen  = [];   // frozen dirs from board's mpconfigboard.mk
 let _allFrozen    = [];   // all dirs in frozen/
 let _allBoards    = null; // [{board, port}] — null until loaded
-let _flagsData    = null; // contents of circuitpy_flags.json
-let _searchActive = -1;   // keyboard nav index in search dropdown
+let _flagsData        = null;      // contents of circuitpy_flags.json
+let _resolvedFlags    = {};        // {FLAG: {value, source}} — fully resolved across all mk layers
+let _baseConfigText   = undefined; // cached py/circuitpy_mpconfig.mk (undefined=not fetched, null=404)
+let _portConfigTexts  = {};        // {port: text or null}
+let _searchActive     = -1;        // keyboard nav index in search dropdown
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 
@@ -654,10 +661,11 @@ async function selectBoard(port, board) {
 }
 
 function resetBoardState() {
-  _currentPort  = '';
-  _currentBoard = '';
-  _boardFlags   = {};
-  _boardFrozen  = [];
+  _currentPort    = '';
+  _currentBoard   = '';
+  _boardFlags     = {};
+  _boardFrozen    = [];
+  _resolvedFlags  = {};
   document.getElementById('build-btn').disabled = true;
   document.getElementById('board-selected-label').innerHTML = '';
   document.getElementById('flags-container').innerHTML = '<p class="loading">Select a board to see its flags.</p>';
@@ -672,11 +680,30 @@ async function loadBoardConfig(port, board) {
   document.getElementById('flags-container').innerHTML = '<p class="loading">Loading board config…</p>';
   document.getElementById('features-container').innerHTML = '<p class="loading">Loading board config…</p>';
   try {
-    const file = await ghContents(`ports/${port}/boards/${board}/mpconfigboard.mk`);
-    const text = decodeBase64(file.content);
-    const { flags, frozenDirs } = parseMk(text);
-    _boardFlags  = flags;
-    _boardFrozen = frozenDirs;
+    const fetchPort = _portConfigTexts.hasOwnProperty(port)
+      ? Promise.resolve(_portConfigTexts[port])
+      : ghContents(`ports/${port}/mpconfigport.mk`)
+          .then(f => decodeBase64(f.content)).catch(() => null);
+    const fetchBase = _baseConfigText !== undefined
+      ? Promise.resolve(_baseConfigText)
+      : ghContents('py/circuitpy_mpconfig.mk')
+          .then(f => decodeBase64(f.content)).catch(() => null);
+
+    const [boardFile, portText, baseText] = await Promise.all([
+      ghContents(`ports/${port}/boards/${board}/mpconfigboard.mk`),
+      fetchPort,
+      fetchBase,
+    ]);
+
+    if (!_portConfigTexts.hasOwnProperty(port)) _portConfigTexts[port] = portText;
+    if (_baseConfigText === undefined) _baseConfigText = baseText;
+
+    const boardText = decodeBase64(boardFile.content);
+    const { flags, frozenDirs } = parseMk(boardText);
+    _boardFlags    = flags;
+    _boardFrozen   = frozenDirs;
+    _resolvedFlags = resolveFlags(boardText, portText || '', baseText || '');
+
     renderFlags(flags);
     renderFeatureFlags();
     document.getElementById('flags-count').textContent = `(${Object.keys(flags).length} board-level settings)`;
@@ -701,6 +728,87 @@ function parseMk(text) {
     if (am) flags[am[1]] = am[2].trim();
   }
   return { flags, frozenDirs };
+}
+
+// ── mk variable resolver ──────────────────────────────────────────────────────
+//
+// Simulates make's ?= / = layering across the three mk files CircuitPython uses:
+//   board mpconfigboard.mk  (highest priority)
+//   port  mpconfigport.mk
+//   base  py/circuitpy_mpconfig.mk  (lowest priority — sets defaults with ?=)
+//
+// After collecting raw values, variables are expanded iteratively (up to 10
+// passes) to resolve $(VAR) references and $(call enable-if-any/all,...).
+
+function parseMkRaw(text) {
+  // Returns [{key, op, rawVal}] for every VAR ?= / = / := assignment.
+  const out = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const m = line.match(/^([A-Z][A-Z0-9_]*)\s*(\?=|:=|\+=|=)\s*(.*)/);
+    if (m) out.push({ key: m[1], op: m[2], rawVal: m[3].trim() });
+  }
+  return out;
+}
+
+function expandMkVal(val, env) {
+  // [^()]* matches plain chars; \$\([^)]*\) matches a $(VAR) — together they
+  // skip over the ) inside nested $(VAR) args so we find the real closing paren.
+  const A = '(?:[^()]*|\\$\\([^)]*\\))*';
+
+  val = val.replace(new RegExp(`\\$\\(call\\s+enable-if-any\\s*,(${A})\\)`, 'g'), (_, args) => {
+    const vals = args.trim().split(/\s+/).map(a => expandMkVal(a, env));
+    return vals.some(v => v !== '0' && v !== '') ? '1' : '0';
+  });
+  val = val.replace(new RegExp(`\\$\\(call\\s+enable-if-all\\s*,(${A})\\)`, 'g'), (_, args) => {
+    const vals = args.trim().split(/\s+/).map(a => expandMkVal(a, env));
+    return vals.every(v => v !== '0' && v !== '') ? '1' : '0';
+  });
+  // Other $(call ...) with potential nested args → 0
+  val = val.replace(new RegExp(`\\$\\(call\\s+${A}\\)`, 'g'), '0');
+  // Simple $(VAR) references
+  val = val.replace(/\$\(([A-Z0-9_]+)\)/g, (_, name) => env[name] ?? '0');
+  return val.trim();
+}
+
+function resolveFlags(boardText, portText, baseText) {
+  const env = {};  // key → raw/expanding value
+  const src = {};  // key → 'board' | 'port' | 'base'
+
+  function applyLayer(assignments, layer) {
+    for (const { key, op, rawVal } of assignments) {
+      if (op === '?=') {
+        if (!(key in env)) { env[key] = rawVal; src[key] = layer; }
+      } else if (op === '+=') {
+        env[key] = (env[key] ? env[key] + ' ' : '') + rawVal;
+      } else {  // = or :=  — unconditional; board is processed first so it wins
+        env[key] = rawVal; src[key] = layer;
+      }
+    }
+  }
+
+  // Process in priority order: board first (wins), then port, then base
+  applyLayer(parseMkRaw(boardText), 'board');
+  applyLayer(parseMkRaw(portText),  'port');
+  applyLayer(parseMkRaw(baseText),  'base');
+
+  // Iteratively expand $(VAR) and $(call ...) until stable (max 10 passes)
+  for (let pass = 0; pass < 10; pass++) {
+    let changed = false;
+    for (const key of Object.keys(env)) {
+      const expanded = expandMkVal(env[key], env);
+      if (expanded !== env[key]) { env[key] = expanded; changed = true; }
+    }
+    if (!changed) break;
+  }
+
+  // Return only CIRCUITPY_* keys with their resolved value and source layer
+  return Object.fromEntries(
+    Object.entries(env)
+      .filter(([k]) => k.startsWith('CIRCUITPY_'))
+      .map(([k, v]) => [k, { value: v, source: src[k] || 'base' }])
+  );
 }
 
 // ── Advanced flags table ──────────────────────────────────────────────────────
@@ -744,10 +852,14 @@ function renderFeatureFlags() {
     const catFlags = Object.entries(flags).filter(([,v]) => v.cat === cat);
     if (!catFlags.length) return '';
     const rows = catFlags.map(([key, meta]) => {
-      const boardVal = _boardFlags[key];
-      const valHint  = boardVal !== undefined
-        ? `<span class="feature-board-val">board: ${boardVal}</span>` : '';
-      const defVal   = boardVal !== undefined ? boardVal : '1';
+      const resolved = _resolvedFlags[key];
+      const defVal   = resolved?.value ?? '1';
+      const source   = resolved?.source;
+      let valHint = '';
+      if (source === 'board')
+        valHint = `<span class="feature-src-board">board: ${defVal}</span>`;
+      else if (source === 'port')
+        valHint = `<span class="feature-src-port">port: ${defVal}</span>`;
       return `
         <div class="feature-row">
           <input type="checkbox" id="feat-${key}" data-feature-flag="${key}"
