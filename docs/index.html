@@ -169,14 +169,16 @@
 <!-- ── TOKEN ──────────────────────────────────────────────────── -->
 <h2>GitHub Token</h2>
 <div class="card">
-  <label for="token">Personal Access Token — needs <code>workflow</code> scope</label>
+  <label for="token">Personal Access Token (classic) — needs <code>workflow</code> scope</label>
   <div class="token-row">
     <input type="password" id="token" placeholder="ghp_…" autocomplete="off"
            onkeydown="if(event.key==='Enter') saveToken()">
     <button class="btn-secondary" onclick="saveToken()">Save</button>
     <button class="btn-secondary" onclick="clearToken()" title="Forget token">✕</button>
   </div>
-  <p class="hint">Stored only in your browser's localStorage. Browsing works without a token; triggering builds requires one.</p>
+  <p class="hint">Stored only in your browser's localStorage. Browsing works without a token; triggering builds requires one.
+    <b>Classic token:</b> check <code>workflow</code> scope.
+    <b>Fine-grained token:</b> set Repository permissions → <b>Actions: Read and write</b> (not "Workflows", which only covers editing .yml files — though fine-grained tokens may still return 403 on some accounts).</p>
   <div id="token-status" class="status"></div>
 </div>
 
@@ -383,6 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadFrozenList();
   loadVersionTags();
   loadFlagsData();
+  selectBoard(QUICK_BOARDS[0].port, QUICK_BOARDS[0].board);
 
   // Close search dropdown on outside click
   document.addEventListener('click', e => {

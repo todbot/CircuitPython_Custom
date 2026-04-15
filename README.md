@@ -22,11 +22,17 @@ The easiest way. Open **[todbot.github.io/CircuitPython_Custom](https://todbot.g
 
 ### First time setup
 
-You need a GitHub Personal Access Token with `workflow` scope to trigger builds. The token is only used to call the GitHub Actions API and is stored only in your browser's `localStorage` — it is never sent anywhere else.
+You need a GitHub Personal Access Token to trigger builds. The token is only used to call the GitHub Actions API and is stored only in your browser's `localStorage` — it is never sent anywhere else.
 
-1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens** (or classic tokens with `workflow` scope)
-2. Create a token with `workflow` scope on this repository
-3. Paste it into the **GitHub Token** field and click **Save**
+**Classic token (recommended):**
+1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)**
+2. Click **Generate new token (classic)**, check the **`workflow`** scope
+
+**Fine-grained token:**
+1. Go to **Personal access tokens → Fine-grained tokens**
+2. Set repository access to this repo
+3. Under Repository permissions set **Actions: Read and write** — note this is *not* the "Workflows" permission, which only covers editing `.yml` files
+4. Fine-grained tokens may still return 403 on some accounts due to GitHub API limitations; use a classic token if so
 
 ### Normal view
 
