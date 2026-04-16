@@ -161,6 +161,9 @@
     .badge { display: inline-block; background: #fef9c3; color: #854d0e; padding: 0.1rem 0.4rem; border-radius: 0.25rem; font-size: 0.7rem; font-weight: 600; vertical-align: middle; }
     .cli-placeholder { color: #9ca3af; font-style: italic; font-size: 0.875rem; }
     .build-summary { font-size: 0.875rem; color: #374151; margin-bottom: 0.75rem; }
+    .intro { font-size: 0.925rem; color: #4b5563; margin: 0.5rem 0 1.25rem; line-height: 1.6; }
+    .intro a { color: #1d4ed8; }
+    .intro code { font-size: 0.875em; background: #f3f4f6; padding: 0.1em 0.3em; border-radius: 0.25rem; }
   </style>
 </head>
 <body data-view="normal">
@@ -172,6 +175,12 @@
     <button onclick="setView('advanced')" id="tab-advanced">Advanced</button>
   </div>
 </header>
+
+<p class="intro">Build customized <a href="https://circuitpython.org">CircuitPython</a> firmware
+on demand using GitHub Actions — no local toolchain required.<br>
+Start from any supported board, then tune it: enable or disable <code>CIRCUITPY_*</code>
+features, add frozen Python modules, choose a specific release or branch, and download
+the resulting <code>.uf2</code> straight from GitHub Actions artifacts.</p>
 
 <!-- ── TOKEN ──────────────────────────────────────────────────── -->
 <h2>GitHub Token</h2>
