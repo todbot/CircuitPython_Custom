@@ -118,8 +118,9 @@
     }
     .feature-category-header .toggle-arrow { transition: transform 0.15s; }
     .feature-category-header.collapsed .toggle-arrow { transform: rotate(-90deg); }
-    .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 0.15rem; }
-    .feature-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0.1rem; border-radius: 0.25rem; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); row-gap: 0.15rem; column-gap: 2rem; }
+    .feature-row { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.2rem 0.1rem; border-radius: 0.25rem; }
+    .feature-row input[type=checkbox] { margin-top: 0.2em; flex-shrink: 0; }
     .feature-row:hover { background: #f9fafb; }
     .feature-row label { margin: 0; font-weight: 400; cursor: pointer; flex: 1; min-width: 0; }
     .feature-name { font-family: monospace; font-size: 0.8rem; color: #1d4ed8; display: block; }
