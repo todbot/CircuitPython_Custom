@@ -22,23 +22,25 @@ Start from any supported board, then tune it: enable or disable `CIRCUITPY_*` fe
 
 ### Setup (one-time, per user)
 
+####  Repo setup
+
 1. **Fork this repo** — click **Fork** on GitHub (keeps the workflow file).
 2. **Enable Actions on your fork** — go to the Actions tab on your fork and click "I understand my workflows, go ahead and enable them".
 3. Open **[todbot.github.io/CircuitPython_Custom](https://todbot.github.io/CircuitPython_Custom/)**, enter and save your token — the GUI will confirm your username and which fork builds will run in.
 
-### First time setup
+####  Token setup 
 
 You need a GitHub Personal Access Token to trigger builds. The token is only used to call the GitHub Actions API and is stored only in your browser's `localStorage` — it is never sent anywhere else.
 
-**Classic token (recommended):**
-1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)**
-2. Click **Generate new token (classic)**, check the **`workflow`** scope
+* Classic token (recommended):
+  1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)**
+  2. Click **Generate new token (classic)**, check the **`workflow`** scope
 
-**Fine-grained token:**
-1. Go to **Personal access tokens → Fine-grained tokens**
-2. Set repository access to this repo
-3. Under Repository permissions set **Actions: Read and write** — note this is *not* the "Workflows" permission, which only covers editing `.yml` files
-4. Fine-grained tokens may still return 403 on some accounts due to GitHub API limitations; use a classic token if so
+* Fine-grained token: 
+  1. Go to **Personal access tokens → Fine-grained tokens**
+  2. Set repository access to this repo
+  3. Under Repository permissions set **Actions: Read and write** — note this is *not* the "Workflows" permission, which only covers editing `.yml` files
+  4. Fine-grained tokens may still return 403 on some accounts due to GitHub API limitations; use a classic token if so
 
 ### Normal view
 
