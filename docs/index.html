@@ -182,22 +182,6 @@ Start from any supported board, then tune it: enable or disable <code>CIRCUITPY_
 features, add frozen Python modules, choose a specific release or branch, and download
 the resulting <code>.uf2</code> straight from GitHub Actions artifacts.</p>
 
-<!-- ── TOKEN ──────────────────────────────────────────────────── -->
-<h2>GitHub Token</h2>
-<div class="card">
-  <label for="token">Personal Access Token (classic) — needs <code>workflow</code> scope</label>
-  <div class="token-row">
-    <input type="password" id="token" placeholder="ghp_…" autocomplete="off"
-           onkeydown="if(event.key==='Enter') saveToken()">
-    <button class="btn-secondary" onclick="saveToken()">Save</button>
-    <button class="btn-secondary" onclick="clearToken()" title="Forget token">✕</button>
-  </div>
-  <p class="hint">Stored only in your browser's localStorage. Browsing works without a token; triggering builds requires one.
-    <b>Important:</b> builds run in <em>your own fork</em> — you must <a href="https://github.com/todbot/CircuitPython_Custom/fork" target="_blank">fork this repo</a> and open the GUI at <code>your-username.github.io/CircuitPython_Custom/</code>.
-    <b>Classic token:</b> check <code>workflow</code> scope.
-    <b>Fine-grained token:</b> set Repository permissions → <b>Actions: Read and write</b> (not "Workflows", which only covers editing .yml files — though fine-grained tokens may still return 403 on some accounts).</p>
-  <div id="token-status" class="status"></div>
-</div>
 
 <!-- ── BOARD — NORMAL ─────────────────────────────────────────── -->
 <h2>Board</h2>
@@ -348,6 +332,24 @@ the resulting <code>.uf2</code> straight from GitHub Actions artifacts.</p>
   <div id="cli-container"><p class="cli-placeholder">Select a board to see the equivalent build commands.</p></div>
 </div>
 
+<!-- ── TOKEN ──────────────────────────────────────────────────── -->
+<h2>GitHub Token</h2>
+<div class="card">
+  <label for="token">Personal Access Token (classic) — needs <code>workflow</code> scope</label>
+  <div class="token-row">
+    <input type="password" id="token" placeholder="ghp_…" autocomplete="off"
+           onkeydown="if(event.key==='Enter') saveToken()">
+    <button class="btn-secondary" onclick="saveToken()">Save</button>
+    <button class="btn-secondary" onclick="clearToken()" title="Forget token">✕</button>
+  </div>
+  <p class="hint">Stored only in your browser's localStorage. Browsing works without a token; triggering builds requires one.
+    Saving your token identifies you via the GitHub API and routes builds to <em>your own fork</em> automatically — you can use this page at its original URL.
+    You must <a href="https://github.com/todbot/CircuitPython_Custom/fork" target="_blank">fork this repo</a> first (one-time setup) and <b>enable Actions</b> on your fork (Actions tab → "I understand my workflows, go ahead and enable them").
+    <b>Classic token:</b> check <code>workflow</code> scope.
+    <b>Fine-grained token:</b> set Repository permissions → <b>Actions: Read and write</b> (not "Workflows") on your fork — though fine-grained tokens may still return 403 on some accounts.</p>
+  <div id="token-status" class="status"></div>
+</div>
+
 <!-- ── BUILD ──────────────────────────────────────────────────── -->
 <h2>Build</h2>
 <div class="card">
@@ -359,11 +361,14 @@ the resulting <code>.uf2</code> straight from GitHub Actions artifacts.</p>
 <script>
 // ── Config ──────────────────────────────────────────────────────────────────
 
-// Auto-detect owner from GitHub Pages hostname (username.github.io → username).
-// Falls back to 'todbot' when running locally or on a custom domain.
+const REPO_NAME  = 'CircuitPython_Custom';
+// REPO_OWNER: where static assets live (this page's GitHub Pages owner).
 const _ghPagesMatch = location.hostname.match(/^([^.]+)\.github\.io$/i);
 const REPO_OWNER = _ghPagesMatch ? _ghPagesMatch[1] : 'todbot';
-const REPO_NAME  = 'CircuitPython_Custom';
+// _dispatchOwner: the authenticated user's GitHub login — builds trigger in
+// _dispatchOwner/REPO_NAME so each user runs in their own fork.
+// Cached in localStorage to survive page reloads.
+let _dispatchOwner = localStorage.getItem('gh_dispatch_owner') || null;
 const WORKFLOW   = 'build-board-custom.yml';
 const CP_REPO    = 'adafruit/circuitpython';
 const CP_REF     = 'main';
@@ -404,7 +409,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const saved = localStorage.getItem('gh_token');
   if (saved) {
     document.getElementById('token').value = saved;
-    showStatus('token-status', 'Token loaded.', 'info');
+    if (_dispatchOwner) {
+      showStatus('token-status',
+        `Token loaded. Builds will run in ` +
+        `<a href="https://github.com/${_dispatchOwner}/${REPO_NAME}" target="_blank">` +
+        `${_dispatchOwner}/${REPO_NAME}</a>.`,
+        'info');
+    } else {
+      // Token saved before we started tracking the owner — resolve silently.
+      resolveDispatchOwner();
+    }
   }
   renderQuickBoards();
   loadPorts();          // for advanced view port select
@@ -479,17 +493,38 @@ async function syncAdvancedSelects() {
 
 function getToken() { return localStorage.getItem('gh_token') || ''; }
 
-function saveToken() {
+async function saveToken() {
   const t = document.getElementById('token').value.trim();
   if (!t) { showStatus('token-status', 'Token is empty.', 'error'); return; }
   localStorage.setItem('gh_token', t);
-  showStatus('token-status', 'Token saved.', 'success');
+  showStatus('token-status', 'Verifying token…', 'info');
+  await resolveDispatchOwner();
 }
 
 function clearToken() {
   localStorage.removeItem('gh_token');
+  localStorage.removeItem('gh_dispatch_owner');
+  _dispatchOwner = null;
   document.getElementById('token').value = '';
   showStatus('token-status', 'Token cleared.', 'info');
+}
+
+async function resolveDispatchOwner() {
+  try {
+    const user = await ghFetch('https://api.github.com/user');
+    _dispatchOwner = user.login;
+    localStorage.setItem('gh_dispatch_owner', _dispatchOwner);
+    showStatus('token-status',
+      `Token verified. Builds will run in ` +
+      `<a href="https://github.com/${_dispatchOwner}/${REPO_NAME}" target="_blank">` +
+      `${_dispatchOwner}/${REPO_NAME}</a>.`,
+      'success');
+  } catch (e) {
+    showStatus('token-status',
+      `Token saved but could not verify identity (${e.message}). ` +
+      `Builds will attempt to use cached username: ${_dispatchOwner || '(none)'}`,
+      'warning');
+  }
 }
 
 // ── GitHub API ────────────────────────────────────────────────────────────────
@@ -1227,6 +1262,12 @@ function copyCli() {
 async function triggerBuild() {
   if (!_currentBoard) { showStatus('build-status', 'Please select a board.', 'error'); return; }
   if (!getToken())    { showStatus('build-status', 'Enter and save a GitHub token first.', 'error'); return; }
+  if (!_dispatchOwner) {
+    showStatus('build-status',
+      'Could not determine your GitHub username — please re-save your token.', 'error');
+    return;
+  }
+  const dispatchOwner = _dispatchOwner;
 
   const version = getVersion();
   const inputs = {
@@ -1247,16 +1288,23 @@ async function triggerBuild() {
 
   try {
     await ghFetch(
-      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW}/dispatches`,
+      `https://api.github.com/repos/${dispatchOwner}/${REPO_NAME}/actions/workflows/${WORKFLOW}/dispatches`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ref: 'main', inputs }) }
     );
     showStatus('build-status',
       `Build triggered for <b>${_currentBoard}</b>! ` +
-      `<a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions" target="_blank">View on GitHub Actions →</a>`,
+      `<a href="https://github.com/${dispatchOwner}/${REPO_NAME}/actions" target="_blank">View on GitHub Actions →</a>`,
       'success');
   } catch (e) {
-    showStatus('build-status', `Error: ${e.message}`, 'error');
+    if (e.message.includes('404')) {
+      showStatus('build-status',
+        `Error: repository <b>${dispatchOwner}/${REPO_NAME}</b> not found. ` +
+        `<a href="https://github.com/todbot/${REPO_NAME}/fork" target="_blank">Fork the repo first →</a>`,
+        'error');
+    } else {
+      showStatus('build-status', `Error: ${e.message}`, 'error');
+    }
   } finally {
     btn.disabled = false; btn.textContent = 'Trigger Build';
   }
