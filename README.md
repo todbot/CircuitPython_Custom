@@ -18,7 +18,13 @@ Start from any supported board, then tune it: enable or disable `CIRCUITPY_*` fe
 
 ## Using the web GUI
 
-The easiest way. Open **[todbot.github.io/CircuitPython_Custom](https://todbot.github.io/CircuitPython_Custom/)** in your browser.
+> **Note:** GitHub Actions `workflow_dispatch` requires write access to the repository. Because of this, each user must run builds from their **own fork**.
+
+### Setup (one-time, per user)
+
+1. **Fork this repo** — click **Fork** on GitHub. This gives you your own copy of the workflow.
+2. **Enable GitHub Pages** on your fork: go to **Settings → Pages**, set source to **Deploy from a branch**, branch `main`, folder `/docs`.
+3. Open your fork's GUI at `https://<your-username>.github.io/CircuitPython_Custom/` — it automatically targets your fork's Actions.
 
 ### First time setup
 

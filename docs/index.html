@@ -169,7 +169,7 @@
 <body data-view="normal">
 
 <header>
-  <h1>CircuitPython Custom Build <small><a href="https://github.com/todbot/CircuitPython_Custom">todbot/CircuitPython_Custom</small></a></h1>
+  <h1>CircuitPython Custom Build <small id="repo-link"><a href="https://github.com/todbot/CircuitPython_Custom">todbot/CircuitPython_Custom</a></small></h1>
   <div class="view-tabs">
     <button onclick="setView('normal')"   id="tab-normal"   class="active">Normal</button>
     <button onclick="setView('advanced')" id="tab-advanced">Advanced</button>
@@ -193,6 +193,7 @@ the resulting <code>.uf2</code> straight from GitHub Actions artifacts.</p>
     <button class="btn-secondary" onclick="clearToken()" title="Forget token">✕</button>
   </div>
   <p class="hint">Stored only in your browser's localStorage. Browsing works without a token; triggering builds requires one.
+    <b>Important:</b> builds run in <em>your own fork</em> — you must <a href="https://github.com/todbot/CircuitPython_Custom/fork" target="_blank">fork this repo</a> and open the GUI at <code>your-username.github.io/CircuitPython_Custom/</code>.
     <b>Classic token:</b> check <code>workflow</code> scope.
     <b>Fine-grained token:</b> set Repository permissions → <b>Actions: Read and write</b> (not "Workflows", which only covers editing .yml files — though fine-grained tokens may still return 403 on some accounts).</p>
   <div id="token-status" class="status"></div>
@@ -358,7 +359,10 @@ the resulting <code>.uf2</code> straight from GitHub Actions artifacts.</p>
 <script>
 // ── Config ──────────────────────────────────────────────────────────────────
 
-const REPO_OWNER = 'todbot';
+// Auto-detect owner from GitHub Pages hostname (username.github.io → username).
+// Falls back to 'todbot' when running locally or on a custom domain.
+const _ghPagesMatch = location.hostname.match(/^([^.]+)\.github\.io$/i);
+const REPO_OWNER = _ghPagesMatch ? _ghPagesMatch[1] : 'todbot';
 const REPO_NAME  = 'CircuitPython_Custom';
 const WORKFLOW   = 'build-board-custom.yml';
 const CP_REPO    = 'adafruit/circuitpython';
@@ -391,6 +395,12 @@ let _searchActive     = -1;        // keyboard nav index in search dropdown
 // ── Init ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Update header link to reflect the actual owner (works for forks).
+  const repoLink = document.getElementById('repo-link');
+  if (repoLink) {
+    repoLink.innerHTML = `<a href="https://github.com/${REPO_OWNER}/${REPO_NAME}">${REPO_OWNER}/${REPO_NAME}</a>`;
+  }
+
   const saved = localStorage.getItem('gh_token');
   if (saved) {
     document.getElementById('token').value = saved;
