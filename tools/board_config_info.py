@@ -10,6 +10,9 @@ Usage:
   board_config_info.py --boards [PORT]   List all boards, optionally filtered by port
   board_config_info.py --board BOARD_ID  Dump CIRCUITPY_* settings and frozen modules for a board
   board_config_info.py --frozen          List available frozen/ module directories
+
+Options:
+  --cp PATH   Path to CircuitPython repo root (default: auto-discovers sibling checkout)
 """
 
 import argparse
@@ -18,10 +21,20 @@ import re
 import sys
 from pathlib import Path
 
-root = Path(__file__).parent.parent
-docs_dir = root / "docs"
-sys.path.insert(0, str(docs_dir))
-from shared_bindings_matrix import get_board_mapping  # noqa: E402
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+
+CP_CANDIDATES = [
+    REPO_ROOT.parent / "circuitpython",
+    Path.home() / "projects" / "adafruit" / "circuitpython",
+]
+
+
+def find_cp_root():
+    for p in CP_CANDIDATES:
+        if (p / "py" / "circuitpy_mpconfig.mk").exists():
+            return p
+    return None
 
 
 def parse_mk_assignments(path):
@@ -45,7 +58,7 @@ def parse_mk_assignments(path):
         if not stripped or stripped.startswith("#"):
             continue
         if stripped.startswith(frozen_prefix):
-            remainder = stripped[len(frozen_prefix) :]
+            remainder = stripped[len(frozen_prefix):]
             frozen_dirs.append(remainder.split("/")[0])
             continue
         m = assignment_re.match(stripped)
@@ -56,7 +69,7 @@ def parse_mk_assignments(path):
     return scalar_vars, frozen_dirs
 
 
-def get_board_info(board_id):
+def get_board_info(board_id, cp_root, get_board_mapping):
     """Return merged CIRCUITPY_* settings and frozen modules for a board.
 
     Merges board > port > base config layers. For each CIRCUITPY_* key,
@@ -71,8 +84,8 @@ def get_board_info(board_id):
     board_dir = info["directory"]
 
     board_vars, board_frozen = parse_mk_assignments(board_dir / "mpconfigboard.mk")
-    port_vars, _ = parse_mk_assignments(root / "ports" / port / "mpconfigport.mk")
-    base_vars, _ = parse_mk_assignments(root / "py" / "circuitpy_mpconfig.mk")
+    port_vars, _ = parse_mk_assignments(cp_root / "ports" / port / "mpconfigport.mk")
+    base_vars, _ = parse_mk_assignments(cp_root / "py" / "circuitpy_mpconfig.mk")
 
     all_keys = (
         {k for k in base_vars if k.startswith("CIRCUITPY_")}
@@ -97,7 +110,7 @@ def get_board_info(board_id):
     }
 
 
-def list_boards(port_filter=None):
+def list_boards(port_filter, get_board_mapping):
     """List all boards with their port. Skips alias entries."""
     board_mapping = get_board_mapping()
     results = []
@@ -110,9 +123,9 @@ def list_boards(port_filter=None):
     return results
 
 
-def list_frozen_modules():
+def list_frozen_modules(cp_root):
     """List available frozen module directories."""
-    frozen_dir = root / "frozen"
+    frozen_dir = cp_root / "frozen"
     if not frozen_dir.is_dir():
         return []
     return sorted(
@@ -122,6 +135,7 @@ def list_frozen_modules():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--cp", metavar="PATH", help="CircuitPython repo root")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
         "--boards",
@@ -142,18 +156,26 @@ def main():
     )
     args = parser.parse_args()
 
+    cp_root = Path(args.cp) if args.cp else find_cp_root()
+    if cp_root is None:
+        print("ERROR: Could not find a CircuitPython source tree. Use --cp PATH to specify one.", file=sys.stderr)
+        sys.exit(1)
+
+    sys.path.insert(0, str(cp_root / "docs"))
+    from shared_bindings_matrix import get_board_mapping  # noqa: E402
+
     if args.boards is not None:
-        result = list_boards(args.boards if args.boards else None)
+        result = list_boards(args.boards if args.boards else None, get_board_mapping)
         print(json.dumps(result, indent=2))
     elif args.board:
         try:
-            result = get_board_info(args.board)
+            result = get_board_info(args.board, cp_root, get_board_mapping)
             print(json.dumps(result, indent=2))
         except ValueError as e:
             print(json.dumps({"error": str(e)}), file=sys.stderr)
             sys.exit(1)
     elif args.frozen:
-        result = list_frozen_modules()
+        result = list_frozen_modules(cp_root)
         print(json.dumps(result, indent=2))
 
 
