@@ -4,11 +4,11 @@ Build customized [CircuitPython](https://circuitpython.org) firmware on demand u
 
 Start from any supported board, then tune it: enable or disable `CIRCUITPY_*` features, add frozen Python modules, choose a specific release or branch, and download the resulting `.uf2` straight from GitHub Actions artifacts.
 
-**[Open the web GUI →](https://todbot.github.io/CircuitPython_Custom/)**
+## [→ Open the web GUI](https://todbot.github.io/CircuitPython_Custom/) 
 
 ---
 
-## What it does
+## What this repo's main build action does
 
 - Clones the official [adafruit/circuitpython](https://github.com/adafruit/circuitpython) source at the version you choose
 - Applies your `CIRCUITPY_*` flag overrides as make variables
@@ -16,9 +16,11 @@ Start from any supported board, then tune it: enable or disable `CIRCUITPY_*` fe
 - Builds with the standard CircuitPython CI toolchain (Ubuntu 24.04)
 - Uploads the firmware as a downloadable GitHub Actions artifact
 
-## Using the web GUI
+## Using the Web GUI
 
-> **Note:** GitHub Actions `workflow_dispatch` requires write access to a repository. The GUI handles this automatically — when you save your token it identifies your GitHub username and routes all builds to your own fork. You can use the GUI from this page's original URL; no need to host your own copy.
+This repo has a [Web GUI](https://todbot.github.io/CircuitPython_Custom/)
+to let you configure and trigger the build action. When you fork this repo and 
+enable actions, it will build the Web GUI for you at `https://<yourusername>.github.io/CircuitPython_Custom/` but you can also use the one linked above. 
 
 ### Setup (one-time, per user)
 
@@ -41,6 +43,8 @@ You need a GitHub Personal Access Token to trigger builds. The token is only use
   2. Set repository access to this repo
   3. Under Repository permissions set **Actions: Read and write** — note this is *not* the "Workflows" permission, which only covers editing `.yml` files
   4. Fine-grained tokens may still return 403 on some accounts due to GitHub API limitations; use a classic token if so
+
+> **Note:** GitHub Actions `workflow_dispatch` requires write access to a repository. The GUI handles this automatically — when you save your token it identifies your GitHub username and routes all builds to your own fork. You can use the GUI from this page's original URL; no need to host your own copy.
 
 ### Normal view
 
@@ -76,6 +80,8 @@ Go to **Actions → Build board (custom) → Run workflow** and fill in the inpu
 ---
 
 ## Tools
+
+These are some tools used either by the build action or for yourself on the commandline. 
 
 ### `tools/gen_flags_json.py`
 
