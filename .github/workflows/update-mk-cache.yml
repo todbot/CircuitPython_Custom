@@ -2,7 +2,7 @@ name: Update mk cache
 
 on:
   schedule:
-    - cron: '0 6 * * *'   # daily at 06:00 UTC
+    - cron: '0 6 * * 1'   # weekly on Monday at 06:00 UTC
   workflow_dispatch:
 
 jobs:
