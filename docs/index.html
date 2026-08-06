@@ -57,7 +57,11 @@
     .hint { font-size: 0.78rem; color: #6b7280; margin: 0.15rem 0 0; }
     .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-    .row4 { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end; }
+    .row4 { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: start; }
+    /* Keep the input boxes on one line: uniform label height so a taller label
+       (e.g. one carrying a .badge) can't push its input down. */
+    .row3 > div > label:first-child,
+    .row4 > div > label:first-child { min-height: 1.35rem; }
     .token-row { display: flex; gap: 0.5rem; }
     .token-row input { flex: 1; }
 
@@ -254,8 +258,9 @@ the resulting <code>.uf2</code> straight from GitHub Actions artifacts.</p>
         <option value="bg"><option value="ID"><option value="fil">
       </datalist>
     </div>
-    <div style="align-self:end; padding-bottom:0.25rem">
-      <label><input type="checkbox" id="debug" onchange="updateBuildSummary()"> Debug build</label>
+    <div>
+      <label aria-hidden="true">&nbsp;</label>
+      <label style="margin-top:0; padding-top:0.5rem; font-weight:400"><input type="checkbox" id="debug" onchange="updateBuildSummary()"> Debug build</label>
     </div>
   </div>
 </div>
@@ -279,14 +284,15 @@ the resulting <code>.uf2</code> straight from GitHub Actions artifacts.</p>
       <input type="text" id="language-adv" value="en_US" placeholder="en_US"
              oninput="updateBuildSummary()">
     </div>
-    <div style="align-self:end; padding-bottom:0.25rem">
-      <label><input type="checkbox" id="debug-adv" onchange="updateBuildSummary()"> Debug</label>
+    <div>
+      <label aria-hidden="true">&nbsp;</label>
+      <label style="margin-top:0; padding-top:0.5rem; font-weight:400"><input type="checkbox" id="debug-adv" onchange="updateBuildSummary()"> Debug</label>
     </div>
   </div>
 </div>
 
 <!-- ── CIRCUITPY_* — NORMAL (checklist) ──────────────────────── -->
-<h2>CIRCUITPY_* Features <span id="features-count" style="font-size:0.8rem;font-weight:400;color:#6b7280"></span></h2>
+<h2 class="normal-only">CIRCUITPY_* Features <span id="features-count" style="font-size:0.8rem;font-weight:400;color:#6b7280"></span></h2>
 <div class="card normal-only">
   <p class="hint" style="margin-top:0">Check a flag to override it.
     <span style="color:#d97706;font-weight:600">Amber</span> = board sets this explicitly.

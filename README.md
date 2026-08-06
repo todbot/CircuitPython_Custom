@@ -116,6 +116,20 @@ python tools/board_config_info.py --board raspberry_pi_pico
 python tools/board_config_info.py --frozen
 ```
 
+### `tools/gen_mk_cache.py`
+
+Rebuilds `docs/mk_cache.json`, the bundle of `.mk` file contents (base, per-port, and the quick-select boards) that lets the web GUI show flag defaults without making GitHub API calls. The `update-mk-cache` workflow runs this weekly, so you normally don't need to — do it by hand after changing `QUICK_BOARDS`.
+
+```bash
+# Auto-discovers a sibling circuitpython/ checkout:
+python tools/gen_mk_cache.py
+
+# Or point at a specific checkout:
+python tools/gen_mk_cache.py --cp ~/projects/adafruit/circuitpython
+```
+
+`QUICK_BOARDS` in this script must stay in sync with the `QUICK_BOARDS` list in `docs/index.html`; if you add or remove a quick-select board, update both and re-run this.
+
 ---
 
 ## How the frozen module override works

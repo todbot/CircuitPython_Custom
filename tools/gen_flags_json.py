@@ -7,16 +7,17 @@ Usage:
     python tools/gen_flags_json.py [--cp PATH] [--out PATH] [--dry-run]
 
 Options:
-    --cp PATH       Path to CircuitPython repo root (default: looks for
-                    py/circuitpy_mpconfig.mk relative to this script's
-                    grandparent, then falls back to ../circuitpython)
+    --cp PATH       Path to CircuitPython repo root (default: tries the
+                    sibling checkout ../circuitpython, then
+                    ~/projects/adafruit/circuitpython; see CP_CANDIDATES)
     --out PATH      Output JSON file (default: docs/circuitpy_flags.json
                     next to this script's parent)
     --dry-run       Print what would change without writing
 
 Behaviour:
-    - Parses py/circuitpy_mpconfig.mk to extract every CIRCUITPY_* flag
-      defined with ?= (the public, overridable ones).
+    - Parses py/circuitpy_mpconfig.mk, py/circuitpy_defns.mk, and every
+      ports/*/mpconfigport.mk to extract every CIRCUITPY_* flag defined
+      with ?= (the public, overridable ones).
     - For each flag, captures the preceding comment block (if any) as a
       fallback description.
     - Merges with the existing JSON:
