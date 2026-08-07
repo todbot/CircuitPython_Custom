@@ -49,15 +49,18 @@ You need a GitHub Personal Access Token to trigger builds. The token is only use
 ### Normal view
 
 1. **Board** — click a quick-select button or search across all ~600 boards
-2. **Build Options** — pick a version tag, language, and optionally enable a debug build
-3. **CIRCUITPY_\* Features** — browse or search all flags; check any you want to override and set a value; amber labels show what the selected board already sets
-4. **Frozen Modules** — bold blue entries are already baked into the selected board; check additional ones to add them, or enable "Clear all" to strip the board's defaults first
-5. **Custom build name** — optional label used in the artifact and run name
-6. Click **Trigger Build** — a link to the Actions run appears when it starts
+2. **Custom build name** — optional label that replaces the board ID in the artifact and run name
+3. **Build Options** — pick a version tag, language, and optionally enable a debug build
+4. **CIRCUITPY_\* Features** — browse or search all flags; check any you want to override and set a value; amber labels show what the selected board already sets
+5. **Frozen Modules** — bold blue entries are already baked into the selected board; check additional ones to add them, or enable "Clear all" to strip the board's defaults first
+6. **CLI Equivalent** — the `make` command line matching your current selection, if you'd rather build it yourself from a local checkout
+7. Click **Trigger Build** — a link to the Actions run appears when it starts
 
 ### Advanced view
 
 Exposes the raw workflow inputs: free-text version/branch, board selected by port+board dropdowns, and a table of only the flags the board explicitly sets in its `mpconfigboard.mk`.
+
+Both views share an **Extra flags** box for any `KEY=VALUE` make override not listed above — useful for a flag the GUI doesn't know about, or a non-`CIRCUITPY_*` variable.
 
 ---
 
@@ -99,6 +102,10 @@ python tools/gen_flags_json.py --dry-run
 ```
 
 Existing `cat` and `desc` entries are preserved. New flags are added with `cat: ""` and any comment from the `.mk` file as a draft description (prefixed `[auto]`). Flags no longer in the source are removed.
+
+> **Watch for renames.** A flag renamed upstream looks like one removal plus one addition, so its curated `cat`/`desc` is silently dropped and the new name arrives blank. Rename the key by hand in `circuitpy_flags.json` *before* running the script and the text carries across.
+
+Note that a flag with `cat: ""` is not rendered by the GUI at all — the feature list is built per category with no fallback bucket — so fill in a category for every new flag.
 
 ### `tools/board_config_info.py`
 
