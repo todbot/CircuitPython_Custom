@@ -66,7 +66,9 @@ Both views share an **Extra flags** box for any `KEY=VALUE` make override not li
 
 ## Triggering manually (GitHub Actions UI)
 
-Go to **Actions → Build board (custom) → Run workflow** and fill in the inputs directly:
+You can also trigger github action builds from the "Actions" section of your
+fork of this repo.  On Github go to **Actions → Build board (custom) → Run workflow** 
+and fill in the inputs directly:
 
 | Input | Description |
 |---|---|
@@ -82,7 +84,7 @@ Go to **Actions → Build board (custom) → Run workflow** and fill in the inpu
 
 ---
 
-## Tools
+## Commandline Tools
 
 These are some tools used either by the build action or for yourself on the commandline. 
 
