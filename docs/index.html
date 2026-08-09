@@ -880,24 +880,68 @@ function parseMkRaw(text) {
   return out;
 }
 
-function expandMkVal(val, env) {
-  // [^()]* matches plain chars; \$\([^)]*\) matches a $(VAR) — together they
-  // skip over the ) inside nested $(VAR) args so we find the real closing paren.
-  const A = '(?:[^()]*|\\$\\([^)]*\\))*';
+function matchParen(s, dollar) {
+  // dollar is the index of '$' in a "$(" — returns the index of its ')', or -1.
+  let depth = 0;
+  for (let i = dollar + 1; i < s.length; i++) {
+    if (s[i] === '(') depth++;
+    else if (s[i] === ')' && --depth === 0) return i;
+  }
+  return -1;
+}
 
-  val = val.replace(new RegExp(`\\$\\(call\\s+enable-if-any\\s*,(${A})\\)`, 'g'), (_, args) => {
-    const vals = args.trim().split(/\s+/).map(a => expandMkVal(a, env));
-    return vals.some(v => v !== '0' && v !== '') ? '1' : '0';
-  });
-  val = val.replace(new RegExp(`\\$\\(call\\s+enable-if-all\\s*,(${A})\\)`, 'g'), (_, args) => {
-    const vals = args.trim().split(/\s+/).map(a => expandMkVal(a, env));
-    return vals.every(v => v !== '0' && v !== '') ? '1' : '0';
-  });
-  // Other $(call ...) with potential nested args → 0
-  val = val.replace(new RegExp(`\\$\\(call\\s+${A}\\)`, 'g'), '0');
-  // Simple $(VAR) references
-  val = val.replace(/\$\(([A-Z0-9_]+)\)/g, (_, name) => env[name] ?? '0');
-  return val.trim();
+function evalMkExpr(body, env) {
+  // body is the inside of a $(...), with any nested $(...) already expanded.
+  // Returns the replacement text, or null to leave the construct untouched.
+  const call = body.match(/^call\s+([a-zA-Z0-9_-]+)\s*,([\s\S]*)$/);
+  if (call) {
+    const words = call[2].trim().split(/\s+/).filter(Boolean);
+    // py/circuitpy_mpconfig.mk defines these as:
+    //   enable-if-any = $(lastword $(sort $(1) 0))
+    //   enable-if-all = $(firstword $(sort $(1) 1))
+    //   enable-if-not = $(if $(filter 1,$(1)),0,1)
+    // $(sort) orders lexicographically, and so does JS sort() with no
+    // comparator — deliberately the same, so multi-digit values (litex sets
+    // USB_NUM_ENDPOINT_PAIRS = 16) land where make would put them.
+    switch (call[1]) {
+      case 'enable-if-any': return [...words, '0'].sort().pop();
+      case 'enable-if-all': return [...words, '1'].sort()[0];
+      case 'enable-if-not': return words.includes('1') ? '0' : '1';
+      default:              return '0';   // unknown helper
+    }
+  }
+  // $(shell expr N '>=' N) — how USB_NUM_ENDPOINT_PAIRS_{5,8}_OR_GREATER, and
+  // through them the USB HID/MIDI defaults, are derived.
+  const cmp = body.match(/^shell\s+expr\s+(-?\d+)\s*'?(>=|<=|!=|>|<|=)'?\s*(-?\d+)$/);
+  if (cmp) {
+    const a = +cmp[1], b = +cmp[3];
+    return ({ '>=': a >= b, '<=': a <= b, '>': a > b, '<': a < b,
+              '=': a === b, '!=': a !== b })[cmp[2]] ? '1' : '0';
+  }
+  if (/^[A-Z0-9_]+$/.test(body)) return env[body] ?? '0';
+  return null;   // some other make function — show it rather than invent a value
+}
+
+function expandMkVal(val, env) {
+  // Walk the string and expand each $(...) innermost-first. A regex can't match
+  // balanced parens, so nested calls like
+  //   $(call enable-if-all,$(FOO) $(call enable-if-not,$(BAR)))
+  // need a real scan — matching ) with a regex stops at the first one and
+  // leaves the extra ) stranded in the result.
+  let out = '';
+  for (let i = 0; i < val.length; ) {
+    if (val[i] === '$' && val[i + 1] === '(') {
+      const end = matchParen(val, i);
+      if (end < 0) { out += val.slice(i); break; }   // unbalanced — leave as-is
+      const body = expandMkVal(val.slice(i + 2, end), env);
+      const rep  = evalMkExpr(body, env);
+      out += rep === null ? `$(${body})` : rep;
+      i = end + 1;
+    } else {
+      out += val[i++];
+    }
+  }
+  return out.trim();
 }
 
 function resolveFlags(boardText, portText, baseText) {
